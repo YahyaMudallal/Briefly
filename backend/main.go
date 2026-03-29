@@ -1,49 +1,66 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"log"
-	"net/http"
+	"os"
 	"time"
+
+	"github.com/YahyaMudallal/newsWebSite/internal/api"
+	"github.com/YahyaMudallal/newsWebSite/internal/database"
+	"github.com/joho/godotenv"
 )
 
-// Exemple de fonction Handler qui renvoie du JSON
-func handleGetNews(w http.ResponseWriter, r *http.Request) {
-	// Obligatoire pour autoriser React (qui tourne sur un autre port) à faire des requêtes
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "application/json") // Les réponses doivent être en JSON
-
-	// Données fictives pour l'exemple
-	response := map[string]string{"message": "Voici la liste des articles !"}
-	
-	// Encodage en JSON et envoi
-	json.NewEncoder(w).Encode(response)
-}
-
 func main() {
-	// native router creation
-	mux := http.NewServeMux()
-	
-	// routes definition
-	// mux.HandleFunc("GET /api/news", handleGetNews)
-	// mux.HandleFunc("POST /api/comments", handlePostComment)
-	// mux.HandleFunc("POST /api/vote", handleVote)
 
-	// launching of the backround task to fetch regularly the news from the externa news API
-	go func() {
-		ticker := time.NewTicker(24 * time.Hour) // every day
-		for range ticker.C {
-			fmt.Println("Updating the database with the news API...")
-			// TODO: call the service which fetch the news
-		}
-	}()
-
-	// starting the server
-	port := ":8080"
-	fmt.Println("Server started on port ", port)
-	err := http.ListenAndServe(port, mux)
+	// lookup for a .env file
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error at the start of the server :", err)
+		log.Println("No .env file has been found.")
+	} else {
+		log.Println(".env has been found.")
+	}
+
+	// get port from environment variables
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// get MongoDB URI and database name from environment variables
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		mongoURI = "mongodb://localhost:27017"
+	}
+
+	// get database name from environment variables
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "main"
+	}
+
+	// create a context with timeout for database connection
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// initialize database connection
+	db, err := database.NewDatabase(ctx, mongoURI, dbName)
+	if err != nil {
+		log.Fatal("Error connecting to MongoDB:", err)
+	}
+	defer db.Close(context.Background())
+
+	// define the application with database
+	app := &api.Application{
+		Database: db,
+		Config: api.Config{
+			Address: ":" + port,
+		},
+	}
+
+	// Start the server
+	err = app.Run(app.Mount())
+	if err != nil {
+		log.Fatal("Error at the start of the server:", err)
 	}
 }
