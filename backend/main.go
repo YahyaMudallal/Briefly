@@ -48,9 +48,9 @@ func main() {
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
-	defer db.Close(context.Background())
+	defer db.Close(context.Background())	// close the database connection when the application exits
 
-	// define the application with database
+	// define the application
 	app := &api.Application{
 		Database: db,
 		Config: api.Config{

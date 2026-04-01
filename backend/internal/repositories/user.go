@@ -64,3 +64,23 @@ func (r *MongoUserRepository) GetByEmail(ctx context.Context, email string) (*mo
 	}
 	return &user, nil
 }
+
+// CreateUser creates a new user.
+// Returns the model of the created user with the ID field added, or an error
+func (r *MongoUserRepository) Create(ctx context.Context, newUser *models.User) (*models.User, error) {
+	
+	// insert the new user into the database
+	result, err := r.collection.InsertOne(ctx, newUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// set the ID of the new user to the inserted ID returned by MongoDB
+	userID, ok := result.InsertedID.(bson.ObjectID)
+	if !ok {
+		return nil, fmt.Errorf("failed to convert inserted ID to ObjectID")
+	}
+	newUser.ID = userID
+
+	return newUser, nil
+}

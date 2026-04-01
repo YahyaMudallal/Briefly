@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -49,4 +50,23 @@ func (h *UsersHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+}
+
+// HandleCreateUser creates a new user.
+func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	ctx := r.Context()
+	createdUser, err := h.service.CreateUser(ctx, &user)
+	if err != nil {
+		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(createdUser)
 }

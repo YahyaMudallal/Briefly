@@ -12,6 +12,11 @@ import (
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
 )
 
+// Define collection names as constants
+const articlesCollection = "articles"
+const usersCollection = "users"
+const commentsCollection = "comments"
+
 // Application represents the main structure of the server.
 // Contains configuration, database, and dependencies.
 type Application struct {
@@ -30,13 +35,13 @@ func (app *Application) Mount() http.Handler {
 
 	// Create repositories
 	articlesRepo := repositories.NewMongoArticleRepository(
-		app.Database.GetCollection("articles"),
+		app.Database.GetCollection(articlesCollection),
 	)
 	usersRepo := repositories.NewMongoUserRepository(
-		app.Database.GetCollection("users"),
+		app.Database.GetCollection(usersCollection),
 	)
 	commentsRepo := repositories.NewMongoCommentRepository(
-		app.Database.GetCollection("comments"),
+		app.Database.GetCollection(commentsCollection),
 	)
 
 	// Create services
@@ -56,6 +61,7 @@ func (app *Application) Mount() http.Handler {
 	mux.HandleFunc("GET /v1/comments/{id}", commentsHandler.HandleGetComment)
 	mux.HandleFunc("GET /v1/users", usersHandler.HandleGetUsers)
 	mux.HandleFunc("GET /v1/users/{id}", usersHandler.HandleGetUser)
+	mux.HandleFunc("POST /v1/users", usersHandler.HandleCreateUser)
 
 	// Adding middlewares
 	logHandler := middleware.LoggingMiddleware(mux)
