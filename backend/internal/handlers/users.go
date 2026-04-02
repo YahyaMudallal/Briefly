@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/auth"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -77,15 +79,42 @@ func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
         LastName:  req.LastName,
         Password:  req.Password,
     }
-	
+
+	// create the user using the service layer
 	ctx := r.Context()
 	createdUser, err := h.service.CreateUser(ctx, &user)
 	if err != nil {
-		errorMessage := fmt.Sprintf("Failed to create user: %v", err)
+		// filter the error based on its type and return the appropriate HTTP status code and message
+		if errors.Is(err, services.ErrValidation) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		} 
+		if errors.Is(err, services.ErrConflict) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		} 
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// remove the password field from the response
+	createdUser.Password = ""
+
+	// generate a JWT token for the created user
+	tokenString, err := auth.GenerateToken(createdUser.ID)
+	if err != nil {
+		errorMessage := fmt.Sprintf("Failed to generate JWT token: %v", err)
 		http.Error(w, errorMessage, http.StatusInternalServerError)
 		return
 	}
 
+	// prepare the response
+	response := map[string]interface{}{
+		"user": createdUser,
+		"token": tokenString,
+	}
+
+	// send the response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createdUser)
+	json.NewEncoder(w).Encode(response)
 }
