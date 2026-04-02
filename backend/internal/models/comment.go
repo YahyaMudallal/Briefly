@@ -1,11 +1,17 @@
 package models
 
-import "time"
+import (
+	"time"
 
-type comment struct {
-	id int
-	author int			// id of the user who written the comment
-	article int			// id of the commented article  
-	date time.Time		// date on which the comment was published
-	content string		// content of the comment
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
+
+// Comment represents a comment on an article in the database.
+type Comment struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	AuthorID  bson.ObjectID `bson:"author_id" json:"authorId"`
+	ArticleID bson.ObjectID `bson:"article_id" json:"articleId"`
+	Content   string        `bson:"content" json:"content"`
+	CreatedAt time.Time     `bson:"created_at" json:"createdAt"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updatedAt"`
 }
