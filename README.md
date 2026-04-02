@@ -1,1 +1,1 @@
-**Briefly** is a full-stack smart news community. Users can access the latest headlines, read AI-generated TL;DR summaries for quick insights, engage in discussions, and upvote or downvote.
+**Briefly** is a full-stack web project which goal is to build a smart news community and where users can access the latest headlines, read AI-generated TL;DR summaries for quick insights, engage in discussions, and upvote or downvote.
