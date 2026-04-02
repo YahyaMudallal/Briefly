@@ -55,6 +55,7 @@ func (app *Application) Mount() http.Handler {
 	usersHandler := handlers.NewUsersHandler(usersService)
 
 	// Define the routes and their handlers
+	
 	mux.HandleFunc("GET /v1/articles", articlesHandler.HandleGetArticles)
 	mux.HandleFunc("GET /v1/articles/{id}", articlesHandler.HandleGetArticle)
 	mux.HandleFunc("GET /v1/comments", commentsHandler.HandleGetComments)

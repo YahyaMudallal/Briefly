@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
@@ -54,16 +55,34 @@ func (h *UsersHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 // HandleCreateUser creates a new user.
 func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+
+	// create a temporary struct to hold the incoming JSON data
+	var req struct {
+		Email	string `json:"email"`
+		FirstName string `json:"firstName"`
+		LastName string `json:"lastName"`
+		Password string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
+	
+	// transform the temporary struct into a User model
+	user := models.User{
+        Email:     req.Email,
+        FirstName: req.FirstName,
+        LastName:  req.LastName,
+        Password:  req.Password,
+    }
+	
 	ctx := r.Context()
 	createdUser, err := h.service.CreateUser(ctx, &user)
 	if err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		errorMessage := fmt.Sprintf("Failed to create user: %v", err)
+		http.Error(w, errorMessage, http.StatusInternalServerError)
 		return
 	}
 

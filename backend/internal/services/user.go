@@ -61,16 +61,19 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *models.User) (*mo
 	}
 
 	// check if the password is valid
-	if len(newUser.Password) < 8 {
-		return nil, fmt.Errorf("password must be at least 8 characters long")
+	if len(newUser.Password) < 4 {
+		return nil, fmt.Errorf("password must be at least 4 characters long")
 	}
-
+	
 	// hash the password before storing it in the database
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 	newUser.Password = string(hashedPassword)
+	
+	// set the admin status to false
+	newUser.IsAdmin = false
 
 	// set the created and updated timestamps
 	newUser.CreatedAt = time.Now()
