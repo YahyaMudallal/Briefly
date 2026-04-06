@@ -2,23 +2,15 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/mail"
 	"time"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/repositories"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"golang.org/x/crypto/bcrypt"
-)
-
-// errors definitions
-var (
-	ErrValidation = errors.New("validation failed")
-	ErrUserNotFound = errors.New("user not found")
-	ErrConflict = errors.New("conflict")
-	ErrInternal = errors.New("internal error")
 )
 
 // UserService provides business logic for users.
@@ -51,40 +43,40 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *models.User) (*mo
 
 	// check if the email isn't empty
 	if newUser.Email == "" {
-		return nil, fmt.Errorf("%w : email cannot be empty", ErrValidation)
+		return nil, fmt.Errorf("%w : email cannot be empty", apperrors.ErrValidation)
 	}
 
 	// check if the email is in a valid format
 	_, err := mail.ParseAddress(newUser.Email)
 	if err != nil {
-		return nil, fmt.Errorf("%w : invalid email format", ErrValidation)
+		return nil, fmt.Errorf("%w : invalid email format", apperrors.ErrValidation)
 	}
 
 	// check if a user with the same email already exists
 	existingUser, err := s.repository.GetByEmail(ctx, newUser.Email)
 	if err == nil && existingUser != nil {
-		return nil, fmt.Errorf("%w : user with email %s already exists", ErrConflict, newUser.Email)
+		return nil, fmt.Errorf("%w : user with email %s already exists", apperrors.ErrConflict, newUser.Email)
 	}
 
 	// check if the user first name is valid
 	if newUser.FirstName == "" {
-		return nil, fmt.Errorf("%w : first name cannot be empty", ErrValidation)
+		return nil, fmt.Errorf("%w : first name cannot be empty", apperrors.ErrValidation)
 	}
 
 	// check if the user last name is valid
 	if newUser.LastName == "" {
-		return nil, fmt.Errorf("%w : last name cannot be empty", ErrValidation)
+		return nil, fmt.Errorf("%w : last name cannot be empty", apperrors.ErrValidation)
 	}
 
 	// check if the password is valid
 	if len(newUser.Password) < 4 {
-		return nil, fmt.Errorf("%w : password must be at least 4 characters long", ErrValidation)
+		return nil, fmt.Errorf("%w : password must be at least 4 characters long", apperrors.ErrValidation)
 	}
 	
 	// hash the password before storing it in the database
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, fmt.Errorf("%w : failed to hash password", ErrInternal)
+		return nil, fmt.Errorf("%w : failed to hash password", apperrors.ErrInternal)
 	}
 	newUser.Password = string(hashedPassword)
 	
@@ -96,4 +88,38 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *models.User) (*mo
 	newUser.UpdatedAt = time.Now()
 
 	return s.repository.Create(ctx, newUser)
+}
+
+// LoginUser authenticates a user and return the user model if it is sucessful, or an error if it fails.
+func (s *UserService) LoginUser(ctx context.Context, email string, password string) (*models.User, error) {
+
+	// check if the email isn't empty
+	if email == "" {
+		return nil, fmt.Errorf("%w : email cannot be empty", apperrors.ErrValidation)
+	}
+
+	// check if the email is in a valid format
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return nil, fmt.Errorf("%w : invalid email format", apperrors.ErrValidation)
+	}
+
+	// check if the password is valid
+	if password == "" {
+		return nil, fmt.Errorf("%w : password cannot be empty", apperrors.ErrValidation)
+	}
+
+	// get the user by email
+	user, err := s.repository.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("%w : invalid email or password", apperrors.ErrUnauthorized)
+	}
+
+	// compare the passwords
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, fmt.Errorf("%w : invalid email or password", apperrors.ErrUnauthorized)
+	}
+
+	return user, nil
 }

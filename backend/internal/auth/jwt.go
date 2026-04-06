@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 // GenerateToken generates a JWT token for the given user ID.
 func GenerateToken(userID bson.ObjectID) (string, error) {
 
+	// get the secret key
 	secret := os.Getenv("JWT_SERCRET")
 	if secret == "" {
 		secret = "default_secret_phrase" // remove in production
@@ -34,4 +36,30 @@ func GenerateToken(userID bson.ObjectID) (string, error) {
 	}
 	
 	return signedToken, nil
+}
+
+// VerifyToken verifies the JWT token returns an error if the token is invalid.
+func VerifyToken(tokenString string) (bson.ObjectID, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" { secret = "default_secret_phrase" }
+
+	// parse the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("signature method wanted : %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+    })
+
+	if err != nil || !token.Valid {
+		return bson.NilObjectID, fmt.Errorf("token invalid or has expired")
+	}
+
+	// extract userID
+    if claims, ok := token.Claims.(jwt.MapClaims); ok {
+        sub, _ := claims["sub"].(string)
+        return bson.ObjectIDFromHex(sub)
+    }
+
+    return bson.NilObjectID, fmt.Errorf("invalid claims")
 }

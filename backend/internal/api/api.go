@@ -63,6 +63,12 @@ func (app *Application) Mount() http.Handler {
 	mux.HandleFunc("GET /v1/users", usersHandler.HandleGetUsers)
 	mux.HandleFunc("GET /v1/users/{id}", usersHandler.HandleGetUser)
 	mux.HandleFunc("POST /v1/users", usersHandler.HandleCreateUser)
+	mux.HandleFunc("POST /v1/articles", articlesHandler.HandleCreateArticle)
+	mux.HandleFunc("POST /v1/comments", commentsHandler.HandleCreateComment)
+	mux.HandleFunc("GET /v1/comments/article/{articleId}", commentsHandler.HandleGetCommentsByArticle)
+	mux.HandleFunc("DELETE /v1/comments/{id}", commentsHandler.HandleDeleteComment)
+	mux.HandleFunc("DELETE /v1/articles/{id}", articlesHandler.HandleDeleteArticle)
+	mux.HandleFunc("POST /v1/users/login", usersHandler.HandleLoginUser)
 
 	// Adding middlewares
 	logHandler := middleware.LoggingMiddleware(mux)
