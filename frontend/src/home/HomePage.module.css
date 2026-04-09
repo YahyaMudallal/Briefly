@@ -1,0 +1,297 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f8fafc; 
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ── Page Layout ── */
+.page {
+  min-height: 100vh;
+  background-color: #f8fafc; 
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f172a;
+  padding: 5px;
+}
+
+/* ── Header ── */
+.header {
+  background-color: #272f41; 
+  position: sticky;
+  top: 5px; 
+  z-index: 100;
+  
+  box-shadow: 0 -20px 0 0 #f8fafc;
+}
+
+.headerContent {
+  max-width: 800px;
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  height: 50px; 
+  width: auto;
+  flex-shrink: 0; 
+}
+
+.logoTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.signInBtn {
+  background-color: #38bdf8; 
+  color: #0f172a;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.signInBtn:hover {
+  opacity: 0.9;
+}
+
+.avatarBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #38bdf8;
+  color: #0f172a;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Main Feed Area ── */
+.mainContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.feedHeader {
+  margin-bottom: 32px;
+}
+
+.feedTitle {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+
+.feedSubtitle {
+  color: #64748b;
+  margin: 0;
+  font-size: 15px;
+}
+
+.newsFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── News Card ── */
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.cardHeader {
+  margin-bottom: 12px;
+}
+
+.sourceTag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.articleTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+.articleDesc {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+/* ── Action Bar (Votes & Buttons) ── */
+.actionBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+.voteGroup, .featureGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.actionBtn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.tldrBtn {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tldrBtn:hover {
+  background: #dbeafe;
+}
+
+.activeTldr {
+  background: #1d4ed8;
+  color: white;
+  border-color: #1d4ed8;
+}
+
+/* ── Expandable Sections (TLDR & Comments) ── */
+.tldrBox {
+  margin-top: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.commentsSection {
+  margin-top: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.commentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.comment {
+  font-size: 14px;
+}
+
+.commentAuthor {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 8px;
+}
+
+.commentText {
+  color: #334155;
+}
+
+.noComments {
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Comment Form ── */
+.commentForm {
+  display: flex;
+  gap: 8px;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.commentInput:focus {
+  border-color: #38bdf8;
+}
+
+.commentSubmitBtn {
+  background: #1e293b;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.loginPrompt {
+  font-size: 13px;
+  text-align: center;
+  color: #64748b;
+}
+
+.loginPrompt a {
+  color: #38bdf8;
+  font-weight: 600;
+  text-decoration: none;
+}
