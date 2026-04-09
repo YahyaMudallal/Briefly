@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import styles from "./AuthPage.module.css";
+import { useUser } from "../context/UserContext";
+import { Link, useNavigate } from 'react-router-dom';
+import type { User } from '../types/types'; 
+
+import styles from "../css/AuthPage.module.css";
 import logoDarkHalf from "../assets/logoDarkHalf.png";
 import logoBrightFull from "../assets/logoBrightFull.png";
 
 
 type Mode = "login" | "signup";
-type PageProps = {
-  onNavigate : (v: "authPage" | "homePage") => void;
-}
 
-export default function AuthPage({onNavigate}:PageProps) {
+export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -18,6 +19,9 @@ export default function AuthPage({onNavigate}:PageProps) {
   const [lastName, setLastName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
+  const { login } = useUser();
+  const navigate = useNavigate();
 
   // Optional: You can keep the window resize listener if you have specific JS logic, 
   // but the CSS handles the responsive layout automatically now.
@@ -67,10 +71,26 @@ export default function AuthPage({onNavigate}:PageProps) {
         return;
       }
 
-      //WE CAN CREATE A COOKIE SESSION
+      const data = await res.json(); // <-- this is the actual response body
 
-      onNavigate("homePage");
-      console.log("Success");
+      //construct the User object based on the expected response structure
+      //this user is shared across the app via context
+      const user: User = {
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        initials: data.user.firstName.charAt(0).toUpperCase() + data.user.lastName.charAt(0).toUpperCase(),
+        isAdmin: data.user.isAdmin
+      };
+      
+      // Save user and token in context and localStorage
+      login(user, data.token);
+
+      // Redirect to home page after successful login/signup
+      navigate("/");
+
+      console.log("login success");
     }catch {
       setError("Network error, please try again!");
     }finally {
@@ -84,14 +104,14 @@ export default function AuthPage({onNavigate}:PageProps) {
       {/* Left panel — hidden on mobile via CSS */}
       <div className={styles.left}>
         <div className={styles.leftContent}>
-          <div className={styles.logoRow}>
             {/*<Logo />*/}
-            <img className={styles.logoIcon} src={logoDarkHalf} />
-            <div className={styles.logoText}>
-              <span className={styles.logoTitle}>Briefly</span>
-              <span className={styles.logoSubTitle}>Smart News Community</span>
-            </div>
-          </div>
+            <Link to="/" className={styles.logoRow}>
+              <img className={styles.logoIcon} src={logoDarkHalf} />
+              <div className={styles.logoText}>
+                <span className={styles.logoTitle}>Briefly</span>
+                <span className={styles.logoSubTitle}>Smart News Community</span>
+              </div>
+            </Link>
           <div className={styles.tagline}>
             <h1 className={styles.taglineMain}>Stay informed.<br />Stay ahead.</h1>
             <p className={styles.taglineSub}>

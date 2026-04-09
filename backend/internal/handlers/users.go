@@ -69,6 +69,7 @@ func (h *UsersHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 // HandleCreateUser creates a new user and generates a JWT token.
 func (h *UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("inside handleCreateUser")
 	// create a temporary struct to hold the incoming JSON data
 	var req struct {
 		Email     string `json:"email"`
