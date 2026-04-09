@@ -14,7 +14,6 @@ export default function AuthPage({onNavigate}:PageProps) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [repeatPassword, setReapeatPassword] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -33,9 +32,7 @@ export default function AuthPage({onNavigate}:PageProps) {
       return "First name cannot be empty."
     if (mode === "signup" && lastName == "" )
       return "Last name cannot be empty."
-    if (username.trim().length < 3)
-      return "Username must be at least 3 characters.";
-    if (mode ==="signup" && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return "Please enter a valid email address.";
     if (mode=="signup" && (password.length < 4))
       return "Password must be at least 4 characters.";
@@ -53,10 +50,10 @@ export default function AuthPage({onNavigate}:PageProps) {
     setLoading(true);
     setError("");
     const url = "http://localhost:8080";
-    const endpoint = (mode === "login") ? "/api/users/login" : "/api/users/signup";
+    const endpoint = (mode === "login") ? "/v1/users/login" : "/v1/users";
     const body = (mode === "login") ? 
-                {username, password} : 
-                {firstName, lastName, username, email, password};
+                {email, password} : 
+                {firstName, lastName, email, password};
     try {
       const res = await fetch(url+endpoint, {
         method : "POST",
@@ -88,7 +85,7 @@ export default function AuthPage({onNavigate}:PageProps) {
       <div className={styles.left}>
         <div className={styles.leftContent}>
           <div className={styles.logoRow}>
-            {/*<LogoMark />*/}
+            {/*<Logo />*/}
             <img className={styles.logoIcon} src={logoDarkHalf} />
             <div className={styles.logoText}>
               <span className={styles.logoTitle}>Briefly</span>
@@ -152,22 +149,12 @@ export default function AuthPage({onNavigate}:PageProps) {
               </div>
             )}
 
-            {mode === "signup" && (
-              <Field
-                label="Email"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="name@example.com"
-              />
-            )}
-
             <Field
-              label="Username"
-              type="text"
-              value={username}
-              onChange={setUsername}
-              placeholder="jean_paul"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="name@example.com"
             />
 
             <Field

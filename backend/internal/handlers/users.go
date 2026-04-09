@@ -67,14 +67,14 @@ func (h *UsersHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleCreateUser creates a new user and generates a JWT token.
-func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// create a temporary struct to hold the incoming JSON data
 	var req struct {
-		Email	string `json:"email"`
+		Email     string `json:"email"`
 		FirstName string `json:"firstName"`
-		LastName string `json:"lastName"`
-		Password string `json:"password"`
+		LastName  string `json:"lastName"`
+		Password  string `json:"password"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -82,14 +82,14 @@ func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
-	
+
 	// transform the temporary struct into a User model
 	user := models.User{
-        Email:     req.Email,
-        FirstName: req.FirstName,
-        LastName:  req.LastName,
-        Password:  req.Password,
-    }
+		Email:     req.Email,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Password:  req.Password,
+	}
 
 	// create the user using the service layer
 	ctx := r.Context()
@@ -99,11 +99,11 @@ func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 		if errors.Is(err, apperrors.ErrValidation) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
-		} 
+		}
 		if errors.Is(err, apperrors.ErrConflict) {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
-		} 
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -121,7 +121,7 @@ func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 
 	// prepare the response
 	response := map[string]interface{}{
-		"user": createdUser,
+		"user":  createdUser,
 		"token": tokenString,
 	}
 
@@ -132,7 +132,7 @@ func (h* UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 
 // HandleLoginUser authenticates a user and returns a JWT token.
 func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
-	
+
 	// create a temporary struct to hold the incoming JSON data
 	var req struct {
 		Email    string `json:"email"`
@@ -153,7 +153,7 @@ func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, apperrors.ErrUnauthorized) {
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 			return
-		} 
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -171,7 +171,7 @@ func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
 
 	// prepare the response
 	response := map[string]interface{}{
-		"user": loggedUser,
+		"user":  loggedUser,
 		"token": tokenString,
 	}
 

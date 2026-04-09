@@ -55,14 +55,14 @@ func (app *Application) Mount() http.Handler {
 	usersHandler := handlers.NewUsersHandler(usersService)
 
 	// Define the routes and their handlers
-	
+
 	mux.HandleFunc("GET /v1/articles", articlesHandler.HandleGetArticles)
 	mux.HandleFunc("GET /v1/articles/{id}", articlesHandler.HandleGetArticle)
 	mux.HandleFunc("GET /v1/comments", commentsHandler.HandleGetComments)
 	mux.HandleFunc("GET /v1/comments/{id}", commentsHandler.HandleGetComment)
 	mux.HandleFunc("GET /v1/users", usersHandler.HandleGetUsers)
 	mux.HandleFunc("GET /v1/users/{id}", usersHandler.HandleGetUser)
-	mux.HandleFunc("POST /v1/users", usersHandler.HandleCreateUser)
+	mux.HandleFunc("POST /v1/users", enableCORS(usersHandler.HandleCreateUser))
 	mux.HandleFunc("POST /v1/articles", articlesHandler.HandleCreateArticle)
 	mux.HandleFunc("POST /v1/comments", commentsHandler.HandleCreateComment)
 	mux.HandleFunc("GET /v1/comments/article/{articleId}", commentsHandler.HandleGetCommentsByArticle)
