@@ -15,4 +15,5 @@ type User struct {
 	Password  string        `bson:"password" json:"-"`
 	CreatedAt time.Time     `bson:"created_at" json:"createdAt"`
 	UpdatedAt time.Time     `bson:"updated_at" json:"updatedAt"`
+	IsAdmin   bool          `bson:"is_admin" json:"isAdmin"`
 }

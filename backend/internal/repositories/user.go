@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -23,13 +24,13 @@ func NewMongoUserRepository(collection *mongo.Collection) *MongoUserRepository {
 func (r *MongoUserRepository) GetAll(ctx context.Context) ([]models.User, error) {
 	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to query users: %w", err)
+		return nil, fmt.Errorf("%w : failed to query users: %w", apperrors.ErrInternal, err)
 	}
 	defer cursor.Close(ctx)
 
 	var users []models.User
 	if err = cursor.All(ctx, &users); err != nil {
-		return nil, fmt.Errorf("failed to decode users: %w", err)
+		return nil, fmt.Errorf("%w : failed to decode users: %w", apperrors.ErrInternal, err)
 	}
 
 	if users == nil {
@@ -45,9 +46,9 @@ func (r *MongoUserRepository) GetByID(ctx context.Context, id bson.ObjectID) (*m
 	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
 		}
-		return nil, fmt.Errorf("failed to query user: %w", err)
+		return nil, fmt.Errorf("%w : failed to query user: %w", apperrors.ErrInternal, err)
 	}
 	return &user, nil
 }
@@ -58,9 +59,9 @@ func (r *MongoUserRepository) GetByEmail(ctx context.Context, email string) (*mo
 	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("user not found")
+			return nil, fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
 		}
-		return nil, fmt.Errorf("failed to query user: %w", err)
+		return nil, fmt.Errorf("%w : failed to query user: %w", apperrors.ErrInternal, err)
 	}
 	return &user, nil
 }
@@ -72,13 +73,13 @@ func (r *MongoUserRepository) Create(ctx context.Context, newUser *models.User) 
 	// insert the new user into the database
 	result, err := r.collection.InsertOne(ctx, newUser)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		return nil, fmt.Errorf("%w : failed to create user: %w", apperrors.ErrInternal, err)
 	}
 
 	// set the ID of the new user to the inserted ID returned by MongoDB
 	userID, ok := result.InsertedID.(bson.ObjectID)
 	if !ok {
-		return nil, fmt.Errorf("failed to convert inserted ID to ObjectID")
+		return nil, fmt.Errorf("%w : failed to convert inserted ID to ObjectID", apperrors.ErrInternal)
 	}
 	newUser.ID = userID
 

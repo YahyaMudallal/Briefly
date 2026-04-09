@@ -51,3 +51,28 @@ func (r *MongoArticleRepository) GetByID(ctx context.Context, id bson.ObjectID) 
 	}
 	return &article, nil
 }
+
+// Create inserts a new article into the database.
+func (r * MongoArticleRepository) Create(ctx context.Context, article *models.Article) (*models.Article, error) {
+	result, err := r.collection.InsertOne(ctx, article)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert article: %w", err)
+	}
+	article.ID = result.InsertedID.(bson.ObjectID)
+	return article, nil
+}
+
+// Delete removes an article by its ID.
+func (r *MongoArticleRepository) Delete(ctx context.Context, id bson.ObjectID) error {
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return fmt.Errorf("failed to delete article : %w", err)
+	}
+
+	// check if an article was actually deleted
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("article not found")
+	}
+
+	return nil
+}
