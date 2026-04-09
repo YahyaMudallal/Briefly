@@ -123,3 +123,8 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 
 	return user, nil
 }
+
+// DeleteUser remove a user by its ID.
+func (s *UserService) DeleteUser(ctx context.Context, id bson.ObjectID) error {
+	return s.repository.Delete(ctx, id)
+}

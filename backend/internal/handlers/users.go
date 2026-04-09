@@ -179,3 +179,31 @@ func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
+
+// HandleDeleteUser delete the user.
+func (h *UsersHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	// parse query
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	// call service layer
+	ctx := r.Context()
+	err = h.service.DeleteUser(ctx, id)
+	if err != nil {
+		// filter error
+		if errors.Is(err, apperrors.ErrNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// return success response
+	w.WriteHeader(http.StatusNoContent)
+}

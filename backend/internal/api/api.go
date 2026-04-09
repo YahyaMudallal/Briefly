@@ -55,20 +55,20 @@ func (app *Application) Mount() http.Handler {
 	usersHandler := handlers.NewUsersHandler(usersService)
 
 	// Define the routes and their handlers
-	
 	mux.HandleFunc("GET /v1/articles", articlesHandler.HandleGetArticles)
 	mux.HandleFunc("GET /v1/articles/{id}", articlesHandler.HandleGetArticle)
 	mux.HandleFunc("GET /v1/comments", commentsHandler.HandleGetComments)
 	mux.HandleFunc("GET /v1/comments/{id}", commentsHandler.HandleGetComment)
 	mux.HandleFunc("GET /v1/users", usersHandler.HandleGetUsers)
 	mux.HandleFunc("GET /v1/users/{id}", usersHandler.HandleGetUser)
-	mux.HandleFunc("POST /v1/users", usersHandler.HandleCreateUser)
-	mux.HandleFunc("POST /v1/articles", articlesHandler.HandleCreateArticle)
-	mux.HandleFunc("POST /v1/comments", commentsHandler.HandleCreateComment)
 	mux.HandleFunc("GET /v1/comments/article/{articleId}", commentsHandler.HandleGetCommentsByArticle)
-	mux.HandleFunc("DELETE /v1/comments/{id}", commentsHandler.HandleDeleteComment)
-	mux.HandleFunc("DELETE /v1/articles/{id}", articlesHandler.HandleDeleteArticle)
+	mux.HandleFunc("POST /v1/users", usersHandler.HandleCreateUser)
 	mux.HandleFunc("POST /v1/users/login", usersHandler.HandleLoginUser)
+	mux.HandleFunc("POST /v1/articles", middleware.AuthMiddleware(articlesHandler.HandleCreateArticle))
+	mux.HandleFunc("POST /v1/comments", middleware.AuthMiddleware(commentsHandler.HandleCreateComment))
+	mux.HandleFunc("DELETE /v1/comments/{id}", middleware.AuthMiddleware(commentsHandler.HandleDeleteComment))
+	mux.HandleFunc("DELETE /v1/articles/{id}", middleware.AuthMiddleware(articlesHandler.HandleDeleteArticle))
+	mux.HandleFunc("DELETE /v1/users/{id}", middleware.AuthMiddleware(usersHandler.HandleDeleteUser))
 
 	// Adding middlewares
 	logHandler := middleware.LoggingMiddleware(mux)
