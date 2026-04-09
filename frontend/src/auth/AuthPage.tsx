@@ -5,17 +5,20 @@ import logoBrightFull from "../assets/logoBrightFull.png";
 
 
 type Mode = "login" | "signup";
+type PageProps = {
+  onNavigate : (v: "authPage" | "homePage") => void;
+}
 
-export default function AuthPage() {
+export default function AuthPage({onNavigate}:PageProps) {
   const [mode, setMode] = useState<Mode>("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setReapeatPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [repeatPassword, setReapeatPassword] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Optional: You can keep the window resize listener if you have specific JS logic, 
   // but the CSS handles the responsive layout automatically now.
@@ -49,20 +52,35 @@ export default function AuthPage() {
     
     setLoading(true);
     setError("");
-    
-    // Replace with your real API call
-    await new Promise(r => setTimeout(r, 900));
-    setLoading(false);
+    const url = "http://localhost:8080";
+    const endpoint = (mode === "login") ? "/api/users/login" : "/api/users/signup";
+    const body = (mode === "login") ? 
+                {username, password} : 
+                {firstName, lastName, username, email, password};
+    try {
+      const res = await fetch(url+endpoint, {
+        method : "POST",
+        headers : { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if(!res.ok){
+        const msg = await res.text();
+        setError(msg);
+        return;
+      }
+
+      //WE CAN CREATE A COOKIE SESSION
+
+      onNavigate("homePage");
+      console.log("Success");
+    }catch {
+      setError("Network error, please try again!");
+    }finally {
+      setLoading(false);
+    }
   };
 
-  // Modern geometric logo SVG
-  const LogoMark = () => (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className={styles.logoIcon}>
-      <rect x="4" y="4" width="10" height="10" rx="3" fill="currentColor" opacity="0.8"/>
-      <rect x="18" y="4" width="10" height="24" rx="3" fill="currentColor"/>
-      <rect x="4" y="18" width="10" height="10" rx="3" fill="currentColor" opacity="0.4"/>
-    </svg>
-  );
 
   return (
     <div className={styles.page}>
@@ -195,6 +213,7 @@ export default function AuthPage() {
 }
 
 /* ── Reusable field ────────────────────────────────────────── */
+
 interface FieldProps {
   label: string;
   type: string;
