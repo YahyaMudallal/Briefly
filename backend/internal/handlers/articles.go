@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -24,7 +25,7 @@ func (h *ArticlesHandler) HandleGetArticles(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	articles, err := h.service.GetAllArticles(ctx)
 	if err != nil {
-		http.Error(w, "Failed to retrieve articles", http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -44,7 +45,7 @@ func (h *ArticlesHandler) HandleGetArticle(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	article, err := h.service.GetArticleByID(ctx, id)
 	if err != nil {
-		http.Error(w, "Article not found", http.StatusNotFound)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -65,7 +66,7 @@ func (h *ArticlesHandler) HandleCreateArticle(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 	createdArticle, err := h.service.CreateArticle(ctx, &article)
 	if err != nil {
-		http.Error(w, "Failed to create article", http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -78,17 +79,24 @@ func (h *ArticlesHandler) HandleCreateArticle(w http.ResponseWriter, r *http.Req
 func (h *ArticlesHandler) HandleDeleteArticle(w http.ResponseWriter, r *http.Request) {
 	// parse query
 	idStr := r.PathValue("id")
-	id, err := bson.ObjectIDFromHex(idStr)
+	articleID, err := bson.ObjectIDFromHex(idStr)
 	if err != nil {
 		http.Error(w, "Invalid article ID", http.StatusBadRequest)
 		return
 	}
 
+	// get the id of the user from the context
+	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
 	// call service layer to delete the article
 	ctx := r.Context()
-	err = h.service.DeleteArticle(ctx, id)
+	err = h.service.DeleteArticle(ctx, articleID, userID)
 	if err != nil {
-		http.Error(w, "Failed to delete article", http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 

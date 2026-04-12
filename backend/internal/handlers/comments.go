@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
@@ -27,7 +26,7 @@ func (h *CommentsHandler) HandleGetComments(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	comments, err := h.service.GetAllComments(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -50,12 +49,7 @@ func (h *CommentsHandler) HandleGetComment(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	comment, err := h.service.GetCommentByID(ctx, id)
 	if err != nil {
-		// filter error
-		if errors.Is(err, apperrors.ErrNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -78,12 +72,7 @@ func (h *CommentsHandler) HandleGetCommentsByArticle(w http.ResponseWriter, r *h
 	ctx := r.Context()
 	comments, err := h.service.GetCommentsByArticleID(ctx, articleID)
 	if err != nil {
-		// filter error
-		if errors.Is(err, apperrors.ErrNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -107,7 +96,7 @@ func (h *CommentsHandler) HandleCreateComment(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 	createdComment, err := h.service.CreateComment(ctx, &comment)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -121,22 +110,24 @@ func (h *CommentsHandler) HandleCreateComment(w http.ResponseWriter, r *http.Req
 func (h *CommentsHandler) HandleDeleteComment(w http.ResponseWriter, r *http.Request) {
 	// parse query
 	idStr := r.PathValue("id")
-	id, err := bson.ObjectIDFromHex(idStr)
+	commentID, err := bson.ObjectIDFromHex(idStr)
 	if err != nil {
 		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
 		return
 	}
 
+	// get the user ID from the context
+	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
+	if !ok {
+		http.Error(w, "Unauthorized: invalid user ID", http.StatusUnauthorized)
+		return
+	}
+
 	// call service layer
 	ctx := r.Context()
-	err = h.service.DeleteComment(ctx, id)
+	err = h.service.DeleteComment(ctx, commentID, userID)
 	if err != nil {
-		// filter error
-		if errors.Is(err, apperrors.ErrNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 

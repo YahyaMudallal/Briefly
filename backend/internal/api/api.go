@@ -45,9 +45,9 @@ func (app *Application) Mount() http.Handler {
 	)
 
 	// Create services
-	articlesService := services.NewArticleService(articlesRepo)
+	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo)
 	usersService := services.NewUserService(usersRepo)
-	commentsService := services.NewCommentService(commentsRepo)
+	commentsService := services.NewCommentService(commentsRepo, usersRepo)
 
 	// Create handlers with dependency injection
 	articlesHandler := handlers.NewArticlesHandler(articlesService)
