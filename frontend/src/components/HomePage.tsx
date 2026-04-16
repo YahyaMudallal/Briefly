@@ -1,11 +1,13 @@
-import styles from './HomePage.module.css';
+import styles from '../css/HomePage.module.css';
+import { useUser } from '../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
-import type { Article, User, Comment } from './types';
+import type { Article, User, Comment } from '../types/types';
 import Header from './Header'
 import NewsCard from './NewsCard'
 
+
 // --- MOCK DATA ---
-const MOCK_USER: User | null = null;//{ username: "jane_doe", initials: "JD" }; // Set to null to see logged-out state
 const MOCK_ARTICLES: Article[] = [
   {
     id: "1",
@@ -33,11 +35,10 @@ const MOCK_ARTICLES: Article[] = [
 
 
 // --- MAIN PAGE COMPONENT ---
-export default function MainPage({onNavigate}:{onNavigate: (v: "authPage" | "homePage") => void }) {
+export default function HomePage() {
   return (
     <div className={styles.page}>
-      <Header user={MOCK_USER} onNavigate={onNavigate} />
-
+      <Header />
       <main className={styles.mainContainer}>
         <div className={styles.feedHeader}>
           <h1 className={styles.feedTitle}>Top Stories</h1>
@@ -46,7 +47,7 @@ export default function MainPage({onNavigate}:{onNavigate: (v: "authPage" | "hom
 
         <div className={styles.newsFeed}>
           {MOCK_ARTICLES.map(article => (
-            <NewsCard key={article.id} article={article} user={MOCK_USER} />
+            <NewsCard key={article.id} article={article} />
           ))}
         </div>
       </main>

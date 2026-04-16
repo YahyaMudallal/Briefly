@@ -17,6 +17,11 @@ export interface Article {
 }
 
 export interface User {
-  username: string;
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   initials: string;
+  isAdmin: boolean;
 }
+

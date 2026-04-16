@@ -1,24 +1,27 @@
 import React, { useState } from "react";
-import styles from "./AuthPage.module.css";
+import { useUser } from "../context/UserContext";
+import { Link, useNavigate } from 'react-router-dom';
+import type { User } from '../types/types'; 
+
+import styles from "../css/AuthPage.module.css";
 import logoDarkHalf from "../assets/logoDarkHalf.png";
 import logoBrightFull from "../assets/logoBrightFull.png";
 
 
 type Mode = "login" | "signup";
-type PageProps = {
-  onNavigate : (v: "authPage" | "homePage") => void;
-}
 
-export default function AuthPage({onNavigate}:PageProps) {
+export default function AuthPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [repeatPassword, setReapeatPassword] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+
+  const { login } = useUser();
+  const navigate = useNavigate();
 
   // Optional: You can keep the window resize listener if you have specific JS logic, 
   // but the CSS handles the responsive layout automatically now.
@@ -33,9 +36,7 @@ export default function AuthPage({onNavigate}:PageProps) {
       return "First name cannot be empty."
     if (mode === "signup" && lastName == "" )
       return "Last name cannot be empty."
-    if (username.trim().length < 3)
-      return "Username must be at least 3 characters.";
-    if (mode ==="signup" && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return "Please enter a valid email address.";
     if (mode=="signup" && (password.length < 4))
       return "Password must be at least 4 characters.";
@@ -53,10 +54,10 @@ export default function AuthPage({onNavigate}:PageProps) {
     setLoading(true);
     setError("");
     const url = "http://localhost:8080";
-    const endpoint = (mode === "login") ? "/api/users/login" : "/api/users/signup";
+    const endpoint = (mode === "login") ? "/v1/users/login" : "/v1/users";
     const body = (mode === "login") ? 
-                {username, password} : 
-                {firstName, lastName, username, email, password};
+                {email, password} : 
+                {firstName, lastName, email, password};
     try {
       const res = await fetch(url+endpoint, {
         method : "POST",
@@ -70,10 +71,26 @@ export default function AuthPage({onNavigate}:PageProps) {
         return;
       }
 
-      //WE CAN CREATE A COOKIE SESSION
+      const data = await res.json(); // <-- this is the actual response body
 
-      onNavigate("homePage");
-      console.log("Success");
+      //construct the User object based on the expected response structure
+      //this user is shared across the app via context
+      const user: User = {
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        initials: data.user.firstName.charAt(0).toUpperCase() + data.user.lastName.charAt(0).toUpperCase(),
+        isAdmin: data.user.isAdmin
+      };
+      
+      // Save user and token in context and localStorage
+      login(user, data.token);
+
+      // Redirect to home page after successful login/signup
+      navigate("/");
+
+      console.log("login success");
     }catch {
       setError("Network error, please try again!");
     }finally {
@@ -87,14 +104,14 @@ export default function AuthPage({onNavigate}:PageProps) {
       {/* Left panel — hidden on mobile via CSS */}
       <div className={styles.left}>
         <div className={styles.leftContent}>
-          <div className={styles.logoRow}>
-            {/*<LogoMark />*/}
-            <img className={styles.logoIcon} src={logoDarkHalf} />
-            <div className={styles.logoText}>
-              <span className={styles.logoTitle}>Briefly</span>
-              <span className={styles.logoSubTitle}>Smart News Community</span>
-            </div>
-          </div>
+            {/*<Logo />*/}
+            <Link to="/" className={styles.logoRow}>
+              <img className={styles.logoIcon} src={logoDarkHalf} />
+              <div className={styles.logoText}>
+                <span className={styles.logoTitle}>Briefly</span>
+                <span className={styles.logoSubTitle}>Smart News Community</span>
+              </div>
+            </Link>
           <div className={styles.tagline}>
             <h1 className={styles.taglineMain}>Stay informed.<br />Stay ahead.</h1>
             <p className={styles.taglineSub}>
@@ -152,22 +169,12 @@ export default function AuthPage({onNavigate}:PageProps) {
               </div>
             )}
 
-            {mode === "signup" && (
-              <Field
-                label="Email"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="name@example.com"
-              />
-            )}
-
             <Field
-              label="Username"
-              type="text"
-              value={username}
-              onChange={setUsername}
-              placeholder="jean_paul"
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="name@example.com"
             />
 
             <Field

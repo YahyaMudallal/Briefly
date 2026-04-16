@@ -54,8 +54,12 @@ body {
   color: #ffffff;
   letter-spacing: -0.02em;
 }
-
-.signInBtn {
+.authArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.signInBtn, .signOutBtn {
   background-color: #38bdf8; 
   color: #0f172a;
   border: none;
@@ -66,8 +70,13 @@ body {
   cursor: pointer;
   transition: opacity 0.2s;
 }
+.signOutBtn {
+  background-color: #ef4444; 
+  padding: 8px 10px;
+  color: white;
+}
 
-.signInBtn:hover {
+.signInBtn:hover, .signOutBtn:hover {
   opacity: 0.9;
 }
 

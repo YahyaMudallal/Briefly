@@ -1,13 +1,16 @@
 import { useState } from "react";
-import type { Article, User } from "./types";
-import styles from './HomePage.module.css';
+import type { Article, User } from "../types/types";
+import styles from '../css/HomePage.module.css';
+import { Link } from "react-router";
+import { useUser } from "../context/UserContext";
 
 
 // --- INDIVIDUAL NEWS CARD COMPONENT ---
-export default function NewsCard({ article, user }: { article: Article, user: User | null }) {
+export default function NewsCard({ article }: { article: Article}) {
   const [showTldr, setShowTldr] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const { user, token } = useUser();
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +89,7 @@ export default function NewsCard({ article, user }: { article: Article, user: Us
             </form>
           ) : (
             <div className={styles.loginPrompt}>
-              <a href="/login">Sign in</a> to join the conversation.
+              <Link to="/auth">Sign in</Link> to join the conversation.
             </div>
           )}
         </div>
