@@ -66,7 +66,7 @@ func (r *MongoUserRepository) GetByEmail(ctx context.Context, email string) (*mo
 	return &user, nil
 }
 
-// CreateUser creates a new user.
+// Create creates a new user.
 // Returns the model of the created user with the ID field added, or an error
 func (r *MongoUserRepository) Create(ctx context.Context, newUser *models.User) (*models.User, error) {
 	
@@ -84,4 +84,16 @@ func (r *MongoUserRepository) Create(ctx context.Context, newUser *models.User) 
 	newUser.ID = userID
 
 	return newUser, nil
+}
+
+// Delete remove a user from its ID.
+func (r *MongoUserRepository) Delete(ctx context.Context, id bson.ObjectID ) error {
+	result, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return fmt.Errorf("%w: failed to delete user: %w", apperrors.ErrInternal, err)
+	}
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("%w: user not found", apperrors.ErrNotFound)
+	}
+	return nil
 }

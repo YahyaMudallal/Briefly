@@ -13,27 +13,28 @@ import (
 
 // CommentService provides business logic for comments.
 type CommentService struct {
-	repository repositories.CommentRepository
+	commentRepo repositories.CommentRepository
+	userRepo repositories.UserRepository
 }
 
 // NewCommentService creates a new CommentService.
-func NewCommentService(repository repositories.CommentRepository) *CommentService {
-	return &CommentService{repository: repository}
+func NewCommentService(commentRepo repositories.CommentRepository, userRepo repositories.UserRepository) *CommentService {
+	return &CommentService{commentRepo: commentRepo, userRepo: userRepo}
 }
 
 // GetAllComments retrieves all comments.
 func (s *CommentService) GetAllComments(ctx context.Context) ([]models.Comment, error) {
-	return s.repository.GetAll(ctx)
+	return s.commentRepo.GetAll(ctx)
 }
 
 // GetCommentByID retrieves a comment by its ID.
 func (s *CommentService) GetCommentByID(ctx context.Context, id bson.ObjectID) (*models.Comment, error) {
-	return s.repository.GetByID(ctx, id)
+	return s.commentRepo.GetByID(ctx, id)
 }
 
 // GetCommentsByArticleID retrieves all comments for a specific article.
 func (s *CommentService) GetCommentsByArticleID(ctx context.Context, articleID bson.ObjectID) ([]models.Comment, error) {
-	return s.repository.GetByArticleID(ctx, articleID)
+	return s.commentRepo.GetByArticleID(ctx, articleID)
 }
 
 // CreateComment creates a new comment.
@@ -45,7 +46,7 @@ func (s *CommentService) CreateComment(ctx context.Context, comment *models.Comm
 	}
 
 	// check if the article exists
-	_, err := s.repository.GetByArticleID(ctx, comment.ArticleID)
+	_, err := s.commentRepo.GetByArticleID(ctx, comment.ArticleID)
 	if err != nil {
 		return nil, fmt.Errorf("%w : article not found", apperrors.ErrNotFound)
 	}
@@ -54,17 +55,41 @@ func (s *CommentService) CreateComment(ctx context.Context, comment *models.Comm
 	comment.CreatedAt = time.Now()
 	comment.UpdatedAt = time.Now()
 
-	return s.repository.Create(ctx, comment)
+	return s.commentRepo.Create(ctx, comment)
 }
 
 // DeleteComment deletes a comment by its ID.
-func (s *CommentService) DeleteComment(ctx context.Context, id bson.ObjectID) error {
+func (s *CommentService) DeleteComment(ctx context.Context, commentID bson.ObjectID, userID bson.ObjectID) error {
 
 	// check if the comment exists
-	_, err := s.repository.GetByID(ctx, id)
+	comment, err := s.commentRepo.GetByID(ctx, commentID)
 	if err != nil {
 		return fmt.Errorf("%w : comment not found", apperrors.ErrNotFound)
 	}
 
-	return s.repository.Delete(ctx, id)
+	// check if the user is the author of the comment
+	isAuthor := comment.AuthorID == userID
+
+	// check if the user is an admin
+	isAdmin := false
+	if !isAuthor {
+		user, err := s.userRepo.GetByID(ctx, userID)
+		if err != nil {
+			return fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
+		}
+		isAdmin = user.IsAdmin
+	}
+
+	// check if the user have the permission to delete the comment
+	if !isAuthor && !isAdmin {
+		return fmt.Errorf("%w : unauthorized to delete this comment", apperrors.ErrUnauthorized)
+	}
+
+	// change the comment to be deleted
+	comment.Content = "[deleted]"
+	comment.AuthorID = bson.NilObjectID
+	comment.UpdatedAt = time.Now()
+
+	// Update the comment in the database
+	return s.commentRepo.Update(ctx, comment)
 }

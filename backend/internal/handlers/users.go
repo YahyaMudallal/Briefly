@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -41,24 +40,14 @@ func (h *UsersHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := bson.ObjectIDFromHex(idStr)
 	if err != nil {
-		// filter error
-		if errors.Is(err, apperrors.ErrNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
 	ctx := r.Context()
 	user, err := h.service.GetUserByID(ctx, id)
 	if err != nil {
-		// filter error
-		if errors.Is(err, apperrors.ErrNotFound) {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -96,16 +85,7 @@ func (h *UsersHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	createdUser, err := h.service.CreateUser(ctx, &user)
 	if err != nil {
-		// filter the error based on its type and return the appropriate HTTP status code and message
-		if errors.Is(err, apperrors.ErrValidation) {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if errors.Is(err, apperrors.ErrConflict) {
-			http.Error(w, err.Error(), http.StatusConflict)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -150,12 +130,7 @@ func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	loggedUser, err := h.service.LoginUser(ctx, req.Email, req.Password)
 	if err != nil {
-		// filter the error based on its type and return the appropriate HTTP status code and message
-		if errors.Is(err, apperrors.ErrUnauthorized) {
-			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
 
@@ -179,4 +154,34 @@ func (h *UsersHandler) HandleLoginUser(w http.ResponseWriter, r *http.Request) {
 	// send the response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// HandleDeleteUser delete the user.
+func (h *UsersHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	// parse query
+	idStr := r.PathValue("id")
+	deletedUserID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	// get the id of the user from the context
+	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
+	if !ok {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	// call service layer
+	ctx := r.Context()
+	err = h.service.DeleteUser(ctx, deletedUserID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+
+	// return success response
+	w.WriteHeader(http.StatusNoContent)
 }

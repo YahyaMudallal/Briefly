@@ -21,7 +21,7 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*models.User, error)
 	GetByEmail(ctx context.Context, email string) (*models.User, error)
 	Create(ctx context.Context, user *models.User) (*models.User, error)
-	//Delete(ctx context.Context, id bson.ObjectID) error
+	Delete(ctx context.Context, id bson.ObjectID) error
 }
 
 // CommentRepository defines methods for comment data access.
@@ -31,4 +31,6 @@ type CommentRepository interface {
 	GetByArticleID(ctx context.Context, articleID bson.ObjectID) ([]models.Comment, error)
 	Create(ctx context.Context, comment *models.Comment) (*models.Comment, error)
 	Delete(ctx context.Context, id bson.ObjectID) error
+	Update(ctx context.Context, comment *models.Comment) error
+	DeleteByArticleID(ctx context.Context, articleID bson.ObjectID) error
 }

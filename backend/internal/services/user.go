@@ -123,3 +123,30 @@ func (s *UserService) LoginUser(ctx context.Context, email string, password stri
 
 	return user, nil
 }
+
+// DeleteUser remove a user by its ID.
+func (s *UserService) DeleteUser(ctx context.Context, deletedUserID bson.ObjectID, userID bson.ObjectID) error {
+
+	// check if the user to delete exists
+	_, err := s.repository.GetByID(ctx, deletedUserID)
+	if err != nil {
+		return fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
+	}
+
+	// check if the user is trying to delete itself
+	if deletedUserID == userID {
+		return fmt.Errorf("%w : users cannot delete themselves", apperrors.ErrUnauthorized)
+	}
+
+	// check if the user is admin
+	user, err := s.repository.GetByID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
+	}
+	if !user.IsAdmin {
+		return fmt.Errorf("%w : only admins can delete users", apperrors.ErrUnauthorized)
+	}
+
+	// delete the user
+	return s.repository.Delete(ctx, deletedUserID)
+}

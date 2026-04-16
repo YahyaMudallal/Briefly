@@ -101,3 +101,26 @@ func (r *MongoCommentRepository) Delete(ctx context.Context, id bson.ObjectID) e
 	}
 	return nil
 }
+
+// Update replaces a comment in the databyse by a new one with the same ID.
+func (r *MongoCommentRepository) Update(ctx context.Context, comment *models.Comment) error {
+	result, err := r.collection.ReplaceOne(ctx, bson.M{"_id": comment.ID}, comment)
+	if err != nil {
+		return fmt.Errorf("%w: failed to update comment: %w", apperrors.ErrInternal, err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: comment not found", apperrors.ErrNotFound)
+	}
+
+	return nil
+}
+
+// DeleteByArticleID deletes all comments of a specific article.
+func (r *MongoCommentRepository) DeleteByArticleID(ctx context.Context, articleID bson.ObjectID) error {
+	_, err := r.collection.DeleteMany(ctx, bson.M{"article_id": articleID})
+    if err != nil {
+        return fmt.Errorf("%w: failed to delete comments for article: %w", apperrors.ErrInternal, err)
+    }
+    return nil
+}
