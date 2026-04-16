@@ -55,7 +55,7 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *models.User) (*mo
 	// check if a user with the same email already exists
 	existingUser, err := s.repository.GetByEmail(ctx, newUser.Email)
 	if err == nil && existingUser != nil {
-		return nil, fmt.Errorf("%w : user with email %s already exists", apperrors.ErrConflict, newUser.Email)
+		return nil, fmt.Errorf("A user with this email already exists.")
 	}
 
 	// check if the user first name is valid
@@ -72,14 +72,14 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *models.User) (*mo
 	if len(newUser.Password) < 4 {
 		return nil, fmt.Errorf("%w : password must be at least 4 characters long", apperrors.ErrValidation)
 	}
-	
+
 	// hash the password before storing it in the database
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("%w : failed to hash password", apperrors.ErrInternal)
 	}
 	newUser.Password = string(hashedPassword)
-	
+
 	// set the admin status to false
 	newUser.IsAdmin = false
 

@@ -1,13 +1,12 @@
+
 /* ── Global Styles & Typography ────────────────────────────── */
 .page {
   display: flex;
-  height: 98vh;
+  height: 100vh;
   overflow: hidden;
   background-color: #ffffff;
-  /* Premium System Font Stack */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 5px;
 }
 
 /* ── Left Panel (Brand) ────────────────────────────────────── */
@@ -18,7 +17,6 @@
   justify-content: center;
   align-items: center;
   padding: 60px;
-  /* Deep, sophisticated dark gradient */
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #ffffff;
   position: relative;
@@ -52,7 +50,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: auto; /* Pushes tagline to center */
+  margin-bottom: auto; 
   padding-top: 20px;
 }
 
@@ -68,34 +66,33 @@
 .logoText {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Ensures both text elements align to the left */
+  align-items: flex-start;
 }
-
 /* Big title */
 .logoTitle {
-  font-size: 52px; /* Adjust size as needed */
+  font-size: 52px; 
   font-weight: 800;
-  line-height: 1.1; /* Keeps the spacing tight */
-  color: #ffffff; /* Assuming you are still using the dark #1e293b background */
+  line-height: 1.1; 
+  color: #ffffff; 
 }
 
 /* Small subtitle right underneath */
 .logoSubTitle {
-  font-size: 11px; /* Much smaller than the title */
+  font-size: 11px; 
   font-weight: 600;
-  color: #67dad2; /* Uses the cyan accent color from your logo */
-  margin-top: -7px; /* Tiny gap between title and subtitle */
+  color: #67dad2; 
+  margin-top: -7px; 
 }
 
 /* Logo image sizing */
 .logoIcon {
-  height: 62px; /* Adjust based on your preferred logo size */
+  height: 62px;
   width: auto;
-  flex-shrink: 0; /* Prevents the image from being squished */
+  flex-shrink: 0;
 }
 
 .tagline {
-  margin-bottom: auto; /* Balances vertical centering */
+  margin-bottom: auto; 
 }
 
 .taglineMain {
@@ -118,7 +115,7 @@
 
 /* ── Right Panel (Form) ────────────────────────────────────── */
 .right {
-  width: 450px;
+  width: 600px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -127,7 +124,7 @@
   padding: 0 64px;
   height: 100vh;
   overflow-y: auto;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05); /* Slight shadow overlapping left panel */
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05); 
   z-index: 10;
 }
 
@@ -219,7 +216,7 @@
   width: 100%;
   box-sizing: border-box;
   color: #111827;
-  background-color: #f9fafb; /* Very light gray background */
+  background-color: #f9fafb; 
   font-family: inherit;
   transition: all 0.2s ease;
 }
@@ -235,7 +232,7 @@
 .input:focus {
   background-color: #ffffff;
   border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15); /* Modern focus ring */
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
 }
 
 .forgotBtn {
@@ -325,15 +322,13 @@
 }
 
 @media (max-width: 1215px) {
-
   .right {
-    width: 30%;
+    width: 40%;
   }
-
 }
 
 
-@media (max-width: 920px) {
+@media (max-width: 1025px) {
   .page {
     flex-direction: column;
   }

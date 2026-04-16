@@ -55,6 +55,7 @@ func (app *Application) Mount() http.Handler {
 	usersHandler := handlers.NewUsersHandler(usersService)
 
 	// Define the routes and their handlers
+
 	mux.HandleFunc("GET /v1/articles", articlesHandler.HandleGetArticles)
 	mux.HandleFunc("GET /v1/articles/{id}", articlesHandler.HandleGetArticle)
 	mux.HandleFunc("GET /v1/comments", commentsHandler.HandleGetComments)
@@ -70,8 +71,10 @@ func (app *Application) Mount() http.Handler {
 	mux.HandleFunc("DELETE /v1/articles/{id}", middleware.AuthMiddleware(articlesHandler.HandleDeleteArticle))
 	mux.HandleFunc("DELETE /v1/users/{id}", middleware.AuthMiddleware(usersHandler.HandleDeleteUser))
 
+	//first wrapping the router with CORS
+	corsHandler := middleware.EnableCORS(mux)
 	// Adding middlewares
-	logHandler := middleware.LoggingMiddleware(mux)
+	logHandler := middleware.LoggingMiddleware(corsHandler)
 	recoverHandler := middleware.RecoverMiddleware(logHandler)
 
 	return recoverHandler
