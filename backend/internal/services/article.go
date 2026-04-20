@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/repositories"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,11 +18,12 @@ type ArticleService struct {
 	articleRepo repositories.ArticleRepository
 	userRepo repositories.UserRepository
 	commentRepo repositories.CommentRepository
+	newsClient clients.NewsClient
 }
 
 // NewArticleService creates a new ArticleService.
-func NewArticleService(articleRepo repositories.ArticleRepository, userRepo repositories.UserRepository, commentRepo repositories.CommentRepository) *ArticleService {
-	return &ArticleService{articleRepo: articleRepo, userRepo: userRepo, commentRepo: commentRepo}
+func NewArticleService(articleRepo repositories.ArticleRepository, userRepo repositories.UserRepository, commentRepo repositories.CommentRepository, newsClient clients.NewsClient) *ArticleService {
+	return &ArticleService{articleRepo: articleRepo, userRepo: userRepo, commentRepo: commentRepo, newsClient: newsClient}
 }
 
 // GetAllArticles retrieves all articles.
@@ -76,4 +79,29 @@ func (s *ArticleService) DeleteArticle(ctx context.Context, articleID bson.Objec
 
 	// delete the article
 	return s.articleRepo.Delete(ctx, articleID)
+}
+
+func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
+	// fetch the article from the client
+	newArtciles, err := s.newsClient.FetchDailyArticles(ctx)
+	if err != nil {
+		return fmt.Errorf("%w : failed to fetch articles from news client", apperrors.ErrInternal)
+	}
+
+	errorCount := 0
+	// save the articles in the database (maybe add CreateMany in the repository for better performance)
+	for _, article := range newArtciles {
+		_, err := s.articleRepo.Create(ctx, &article)
+		if err != nil {
+			log.Printf("Error saving article with title '%s' : %v\n", article.Title, err)
+			errorCount++
+			continue
+		}
+	}
+
+	if errorCount > 0 {
+		log.Printf("Failed to save %d articles for %d articles\n", errorCount, len(newArtciles))
+	}
+
+	return nil
 }

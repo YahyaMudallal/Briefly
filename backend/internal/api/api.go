@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/database"
 	"github.com/YahyaMudallal/newsWebSite/internal/handlers"
+	"github.com/YahyaMudallal/newsWebSite/internal/jobs"
 	"github.com/YahyaMudallal/newsWebSite/internal/middleware"
 	"github.com/YahyaMudallal/newsWebSite/internal/repositories"
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
@@ -22,6 +24,8 @@ const commentsCollection = "comments"
 type Application struct {
 	Config   Config
 	Database *database.Database
+	NewsClient clients.NewsClient
+	Scheduler *jobs.Scheduler
 }
 
 // Config represents the configuration of the server.
@@ -45,7 +49,7 @@ func (app *Application) Mount() http.Handler {
 	)
 
 	// Create services
-	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo)
+	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient)
 	usersService := services.NewUserService(usersRepo)
 	commentsService := services.NewCommentService(commentsRepo, usersRepo)
 
@@ -53,6 +57,9 @@ func (app *Application) Mount() http.Handler {
 	articlesHandler := handlers.NewArticlesHandler(articlesService)
 	commentsHandler := handlers.NewCommentsHandler(commentsService)
 	usersHandler := handlers.NewUsersHandler(usersService)
+
+	// Initialize the scheduler for daily article synchronization
+	app.Scheduler = jobs.NewScheduler(articlesService)
 
 	// Define the routes and their handlers
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/api"
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/database"
 	"github.com/joho/godotenv"
 )
@@ -50,16 +51,27 @@ func main() {
 	}
 	defer db.Close(context.Background()) // close the database connection when the application exits
 
+	// Initialize the external news API client
+	newClient := clients.NewNewsAPIClient("PLACEHOLDER_API_KEY")
+
 	// define the application
 	app := &api.Application{
 		Database: db,
+		NewsClient: newClient,
 		Config: api.Config{
 			Address: ":" + port,
 		},
 	}
 
-	// Start the server
-	err = app.Run(app.Mount())
+	// Mount the handlers and get the main handler
+	handler := app.Mount()
+
+	// Start the scheduler for daily article synchronization
+	app.Scheduler.Start()
+	defer app.Scheduler.Stop() // stop the scheduler when the application exits
+
+	// Run the server
+	err = app.Run(handler)
 	if err != nil {
 		log.Fatal("Error at the start of the server:", err)
 	}
