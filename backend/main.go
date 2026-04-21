@@ -40,6 +40,16 @@ func main() {
 		dbName = "main"
 	}
 
+	newAPIKey := os.Getenv("NEWS_API_KEY")
+	if newAPIKey == "" {
+		newAPIKey = "PLACEHOLDER_API_KEY"
+	}
+
+	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
+	if geminiAPIKey == "" {
+		geminiAPIKey = "PLACEHOLDER_API_KEY"
+	}
+
 	// create a context with timeout for database connection
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -52,12 +62,16 @@ func main() {
 	defer db.Close(context.Background()) // close the database connection when the application exits
 
 	// Initialize the external news API client
-	newClient := clients.NewNewsAPIClient("PLACEHOLDER_API_KEY")
+	newClient := clients.NewNewsAPIClient(newAPIKey)
+
+	// Initialize the external Gemini API client
+	geminiClient := clients.NewGeminiAPIClient(geminiAPIKey) 
 
 	// define the application
 	app := &api.Application{
 		Database: db,
 		NewsClient: newClient,
+		GeminiClient: geminiClient,
 		Config: api.Config{
 			Address: ":" + port,
 		},

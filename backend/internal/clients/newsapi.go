@@ -8,7 +8,7 @@ import (
 
 type NewsClient interface {
     FetchDailyArticles(ctx context.Context) ([]models.Article, error)
-}
+}	
 
 type newsAPIClient struct {
     apiKey string
@@ -19,5 +19,6 @@ func NewNewsAPIClient(apiKey string) NewsClient {
 }
 
 func (c *newsAPIClient) FetchDailyArticles(ctx context.Context) ([]models.Article, error) {
+	// TODO
 	return nil, nil
 }

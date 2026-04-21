@@ -19,11 +19,24 @@ type ArticleService struct {
 	userRepo repositories.UserRepository
 	commentRepo repositories.CommentRepository
 	newsClient clients.NewsClient
+	geminiClient clients.GeminiClient
 }
 
 // NewArticleService creates a new ArticleService.
-func NewArticleService(articleRepo repositories.ArticleRepository, userRepo repositories.UserRepository, commentRepo repositories.CommentRepository, newsClient clients.NewsClient) *ArticleService {
-	return &ArticleService{articleRepo: articleRepo, userRepo: userRepo, commentRepo: commentRepo, newsClient: newsClient}
+func NewArticleService(
+	articleRepo repositories.ArticleRepository,
+	userRepo repositories.UserRepository,
+	commentRepo repositories.CommentRepository,
+	newsClient clients.NewsClient,
+	geminiClient clients.GeminiClient,
+	) *ArticleService {
+	return &ArticleService{
+		articleRepo: articleRepo,
+		userRepo: userRepo,
+		commentRepo: commentRepo,
+		newsClient: newsClient,
+		geminiClient: geminiClient,
+	}
 }
 
 // GetAllArticles retrieves all articles.

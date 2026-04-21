@@ -26,6 +26,7 @@ type Application struct {
 	Database *database.Database
 	NewsClient clients.NewsClient
 	Scheduler *jobs.Scheduler
+	GeminiClient clients.GeminiClient
 }
 
 // Config represents the configuration of the server.
@@ -49,7 +50,7 @@ func (app *Application) Mount() http.Handler {
 	)
 
 	// Create services
-	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient)
+	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient, app.GeminiClient)
 	usersService := services.NewUserService(usersRepo)
 	commentsService := services.NewCommentService(commentsRepo, usersRepo)
 
