@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
@@ -94,6 +93,8 @@ func (s *ArticleService) DeleteArticle(ctx context.Context, articleID bson.Objec
 	return s.articleRepo.Delete(ctx, articleID)
 }
 
+// SyncDailyArticles Called daily by the server to Synchronize the articles database
+// by calling the new api to get new articles and add them to the database.
 func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
 	// fetch the article from the client
 	newArtciles, err := s.newsClient.FetchDailyArticles(ctx)
@@ -101,19 +102,42 @@ func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
 		return fmt.Errorf("%w : failed to fetch articles from news client", apperrors.ErrInternal)
 	}
 
-	errorCount := 0
 	// save the articles in the database (maybe add CreateMany in the repository for better performance)
-	for _, article := range newArtciles {
-		_, err := s.articleRepo.Create(ctx, &article)
-		if err != nil {
-			log.Printf("Error saving article with title '%s' : %v\n", article.Title, err)
-			errorCount++
-			continue
-		}
+	_, err = s.articleRepo.CreateMany(ctx, newArtciles)
+	if err != nil {
+		return fmt.Errorf("%w : failed to save articles in the database", apperrors.ErrInternal)
 	}
 
-	if errorCount > 0 {
-		log.Printf("Failed to save %d articles for %d articles\n", errorCount, len(newArtciles))
+	return nil
+}
+
+// GenerateSummary call the Gemini API to generate a summary (tldr) for the given article and update the article in the database with the new summary.
+func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.ObjectID) error {
+
+	// get the article from the database
+	article, err := s.articleRepo.GetByID(ctx, articleID)
+	if err != nil {
+		return fmt.Errorf("%w : failed to get the article from the database: %w", apperrors.ErrInternal, err)
+	}
+
+	// check if the article has already a summary
+	if article.Summary != "" {
+		return fmt.Errorf("%w : the article already has a summary", apperrors.ErrValidation)
+	}
+
+	// call the Gemini API to generate a summary for the article
+	summary, err := s.geminiClient.GenerateTLDR(ctx, article)
+	if err != nil {
+		return fmt.Errorf("%w : failed to generate the summary: %w", apperrors.ErrInternal, err)
+	}
+
+	// add the summary to the article
+	article.Summary = summary
+
+	// update the article in the database
+	err = s.articleRepo.Update(ctx, article)
+	if err != nil {
+		return fmt.Errorf("%w : failed to update the article in the database: %w", apperrors.ErrInternal, err)
 	}
 
 	return nil

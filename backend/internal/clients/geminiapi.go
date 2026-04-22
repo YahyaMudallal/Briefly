@@ -3,11 +3,11 @@ package clients
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"github.com/YahyaMudallal/newsWebSite/internal/models"
 )
 
 type GeminiClient interface {
-	GenerateTLDR(ctx context.Context, articleID bson.ObjectID) (string, error)
+	GenerateTLDR(ctx context.Context, article *models.Article) (string, error)
 }
 
 type GeminiAPIClient struct {
@@ -18,7 +18,8 @@ func NewGeminiAPIClient(apiKey string) GeminiClient {
 	return &GeminiAPIClient{apiKey: apiKey}
 }
 
-func (c *GeminiAPIClient) GenerateTLDR(ctx context.Context, articleID bson.ObjectID) (string, error) {
+// GenerateTLDR generates a summary (tldr) for the given article using the Gemini API.
+func (c *GeminiAPIClient) GenerateTLDR(ctx context.Context, article *models.Article) (string, error) {
 	// TODO
 	return "", nil
 }

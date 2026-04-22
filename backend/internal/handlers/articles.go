@@ -103,3 +103,25 @@ func (h *ArticlesHandler) HandleDeleteArticle(w http.ResponseWriter, r *http.Req
 	// return no content status
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// HandleGenerateSummary generates a summary for an article by ID.
+func (h *ArticlesHandler) HandleGenerateSummary(w http.ResponseWriter, r *http.Request) {
+	// parse query
+	idStr := r.PathValue("id")
+	articleID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid article ID", http.StatusBadRequest)
+		return
+	}
+
+	// call the service layer to generate the summary
+	ctx := r.Context()
+	err = h.service.GenerateSummary(ctx, articleID)
+	if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+
+	// return no content status
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -12,6 +12,8 @@ type ArticleRepository interface {
 	GetAll(ctx context.Context) ([]models.Article, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (*models.Article, error)
 	Create(ctx context.Context, article *models.Article) (*models.Article, error)
+	CreateMany(ctx context.Context, articles []models.Article) ([]models.Article, error)
+	Update(ctx context.Context, article *models.Article) error
 	Delete(ctx context.Context, id bson.ObjectID) error
 }
 

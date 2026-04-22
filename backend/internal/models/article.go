@@ -12,6 +12,9 @@ type Article struct {
 	Title         string        	`bson:"title" json:"title"`
 	Description   string        	`bson:"description" json:"description"`
 	Content       string        	`bson:"content" json:"content"`
+	OriginalURL   string        	`bson:"original_url" json:"originalUrl"`
+	ImageURL	  string        	`bson:"image_url" json:"imageUrl"`
+	Source        string        	`bson:"source" json:"source"`
 	UpVotes       int           	`bson:"up_votes" json:"upvotes"`
 	DownVotes     int           	`bson:"down_votes" json:"downvotes"`
 	Summary       string        	`bson:"summary" json:"summary"`

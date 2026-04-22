@@ -54,13 +54,34 @@ func (r *MongoArticleRepository) GetByID(ctx context.Context, id bson.ObjectID) 
 }
 
 // Create inserts a new article into the database.
-func (r * MongoArticleRepository) Create(ctx context.Context, article *models.Article) (*models.Article, error) {
+func (r *MongoArticleRepository) Create(ctx context.Context, article *models.Article) (*models.Article, error) {
 	result, err := r.collection.InsertOne(ctx, article)
 	if err != nil {
 		return nil, fmt.Errorf("%w : failed to insert article: %w", apperrors.ErrInternal, err)
 	}
 	article.ID = result.InsertedID.(bson.ObjectID)
 	return article, nil
+}
+
+// CreateMany inserts new articles into the database.
+func (r *MongoArticleRepository) CreateMany(ctx context.Context, articles []models.Article) ([]models.Article, error) {
+	result, err := r.collection.InsertMany(ctx, articles)
+	if err != nil {
+		return nil, fmt.Errorf("%w : failed to insert articles: %w", apperrors.ErrInternal, err )
+	}
+	for i, id := range result.InsertedIDs {
+		articles[i].ID = id.(bson.ObjectID)
+	}
+	return articles, nil
+}
+
+// Update updates an existing article in the database.
+func (r *MongoArticleRepository) Update(ctx context.Context, article *models.Article) error {
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": article.ID}, bson.M{"$set": article})
+	if err != nil {
+		return fmt.Errorf("%w : failed to update article: %w", apperrors.ErrInternal, err)
+	}
+	return nil
 }
 
 // Delete removes an article by its ID.

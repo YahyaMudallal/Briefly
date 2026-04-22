@@ -18,6 +18,7 @@ func NewNewsAPIClient(apiKey string) NewsClient {
     return &newsAPIClient{apiKey: apiKey}
 }
 
+// FetchDailyArticles fetches the daily articles from the News API.
 func (c *newsAPIClient) FetchDailyArticles(ctx context.Context) ([]models.Article, error) {
 	// TODO
 	return nil, nil
