@@ -51,11 +51,11 @@ func main() {
 	}
 
 	// create a context with timeout for database connection
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctxDB, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// initialize database connection
-	db, err := database.NewDatabase(ctx, mongoURI, dbName)
+	db, err := database.NewDatabase(ctxDB, mongoURI, dbName)
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
@@ -64,8 +64,15 @@ func main() {
 	// Initialize the external news API client
 	newClient := clients.NewNewsAPIClient(newAPIKey)
 
+	// create a context with timeout for the Gemini API client initialization
+	ctxGemini, cancelGemini := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelGemini()
+
 	// Initialize the external Gemini API client
-	geminiClient := clients.NewGeminiAPIClient(geminiAPIKey) 
+	geminiClient, err := clients.NewGeminiAPIClient(ctxGemini, geminiAPIKey)
+	if err != nil {
+		log.Fatal("Error initializing Gemini API client:", err)
+	}
 
 	// define the application
 	app := &api.Application{
