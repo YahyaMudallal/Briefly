@@ -13,13 +13,14 @@ import (
 
 // CommentService provides business logic for comments.
 type CommentService struct {
+	articleRepo repositories.ArticleRepository
 	commentRepo repositories.CommentRepository
-	userRepo repositories.UserRepository
+	userRepo    repositories.UserRepository
 }
 
 // NewCommentService creates a new CommentService.
-func NewCommentService(commentRepo repositories.CommentRepository, userRepo repositories.UserRepository) *CommentService {
-	return &CommentService{commentRepo: commentRepo, userRepo: userRepo}
+func NewCommentService(commentRepo repositories.CommentRepository, userRepo repositories.UserRepository, articleRepo repositories.ArticleRepository) *CommentService {
+	return &CommentService{commentRepo: commentRepo, userRepo: userRepo, articleRepo: articleRepo}
 }
 
 // GetAllComments retrieves all comments.
@@ -46,9 +47,21 @@ func (s *CommentService) CreateComment(ctx context.Context, comment *models.Comm
 	}
 
 	// check if the article exists
-	_, err := s.commentRepo.GetByArticleID(ctx, comment.ArticleID)
+	_, err := s.articleRepo.GetByID(ctx, comment.ArticleID)
 	if err != nil {
 		return nil, fmt.Errorf("%w : article not found", apperrors.ErrNotFound)
+	}
+
+	// check if the user exists
+	_, err = s.userRepo.GetByID(ctx, comment.AuthorID)
+	if err != nil {
+		return nil, fmt.Errorf("%w : user not found", apperrors.ErrNotFound)
+	}
+
+	// increment the number of comments for the article
+	err = s.articleRepo.IncrementCommentCount(ctx, comment.ArticleID, 1)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to update article's comment count: %w", apperrors.ErrInternal, err)
 	}
 
 	// set the created at and updated at fields

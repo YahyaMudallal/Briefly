@@ -1,41 +1,45 @@
-import styles from '../css/HomePage.module.css';
 import { useUser } from '../context/UserContext';
-import { useNavigate } from 'react-router-dom';
-
-import type { Article, User, Comment } from '../types/types';
+import styles from '../css/HomePage.module.css';
+import type { Article } from '../types/types';
 import Header from './Header'
 import NewsCard from './NewsCard'
-
-
-// --- MOCK DATA ---
-const MOCK_ARTICLES: Article[] = [
-  {
-    id: "1",
-    title: "Global Tech Summit Announces Groundbreaking AI Regulations",
-    description: "Leaders from top tech firms and government agencies have agreed on a new framework for artificial intelligence development, focusing on safety and transparency...",
-    tldr: "Tech giants and governments agreed on new AI safety and transparency rules to prevent misuse.",
-    source: "TechInsider",
-    upvotes: 142,
-    downvotes: 12,
-    comments: [
-      { id: "c1", author: "code_ninja", text: "Finally some clear guidelines!", timestamp: "2h ago" }
-    ]
-  },
-  {
-    id: "2",
-    title: "Breakthrough in Solid-State Battery Technology",
-    description: "Researchers at MIT have developed a new solid-state battery architecture that promises to double the range of electric vehicles while eliminating fire risks...",
-    tldr: "MIT researchers created a safer solid-state battery that could double EV range.",
-    source: "ScienceDaily",
-    upvotes: 89,
-    downvotes: 3,
-    comments: []
-  }
-];
+import { useEffect, useState} from 'react';
 
 
 // --- MAIN PAGE COMPONENT ---
 export default function HomePage() {
+
+  //get articles from backend and display them in news cards
+  const [articles, setArticles] = useState<Article[]>([]);
+  const { token, loading } = useUser(); 
+  
+  const url = "http://localhost:8080/v1/articles";
+  
+  // Fetch articles from backend on component mount
+  useEffect(() => {
+    if (loading) {  // Wait until loading is complete before fetching articles
+      console.log("User loading state is true, waiting to fetch articles...");
+      return;
+    }
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    fetch(url, {
+      method: "GET",
+      headers: headers,
+      //body is not needed for GET request
+    })
+    .then(res => res.json())
+    .then(data => {
+      setArticles(data);
+    })
+    .catch(err => console.error("Failed to fetch articles:", err));
+  }, [token, loading]); // Re-run effect if token changes (e.g., user logs in/out) or loading state changes
+
   return (
     <div className={styles.page}>
       <Header />
@@ -46,7 +50,7 @@ export default function HomePage() {
         </div>
 
         <div className={styles.newsFeed}>
-          {MOCK_ARTICLES.map(article => (
+          {articles.map(article => (
             <NewsCard key={article.id} article={article} />
           ))}
         </div>
