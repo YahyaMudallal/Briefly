@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/api"
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/database"
 	"github.com/joho/godotenv"
 )
@@ -39,27 +40,59 @@ func main() {
 		dbName = "main"
 	}
 
+	newAPIKey := os.Getenv("NEWSDATA_API_KEY")
+	if newAPIKey == "" {
+		newAPIKey = "PLACEHOLDER_API_KEY"
+	}
+
+	geminiAPIKey := os.Getenv("GEMINI_API_KEY")
+	if geminiAPIKey == "" {
+		geminiAPIKey = "PLACEHOLDER_API_KEY"
+	}
+
 	// create a context with timeout for database connection
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctxDB, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// initialize database connection
-	db, err := database.NewDatabase(ctx, mongoURI, dbName)
+	db, err := database.NewDatabase(ctxDB, mongoURI, dbName)
 	if err != nil {
 		log.Fatal("Error connecting to MongoDB:", err)
 	}
 	defer db.Close(context.Background()) // close the database connection when the application exits
 
+	// Initialize the external news API client
+	newClient := clients.NewNewsAPIClient(newAPIKey)
+
+	// create a context with timeout for the Gemini API client initialization
+	ctxGemini, cancelGemini := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelGemini()
+
+	// Initialize the external Gemini API client
+	geminiClient, err := clients.NewGeminiAPIClient(ctxGemini, geminiAPIKey)
+	if err != nil {
+		log.Fatal("Error initializing Gemini API client:", err)
+	}
+
 	// define the application
 	app := &api.Application{
 		Database: db,
+		NewsClient: newClient,
+		GeminiClient: geminiClient,
 		Config: api.Config{
 			Address: ":" + port,
 		},
 	}
 
-	// Start the server
-	err = app.Run(app.Mount())
+	// Mount the handlers and get the main handler
+	handler := app.Mount()
+
+	// Start the scheduler for daily article synchronization
+	app.Scheduler.Start()
+	defer app.Scheduler.Stop() // stop the scheduler when the application exits
+
+	// Run the server
+	err = app.Run(handler)
 	if err != nil {
 		log.Fatal("Error at the start of the server:", err)
 	}

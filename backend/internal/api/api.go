@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/database"
 	"github.com/YahyaMudallal/newsWebSite/internal/handlers"
+	"github.com/YahyaMudallal/newsWebSite/internal/jobs"
 	"github.com/YahyaMudallal/newsWebSite/internal/middleware"
 	"github.com/YahyaMudallal/newsWebSite/internal/repositories"
 	"github.com/YahyaMudallal/newsWebSite/internal/services"
@@ -23,6 +25,9 @@ const votesCollection = "votes"
 type Application struct {
 	Config   Config
 	Database *database.Database
+	NewsClient clients.NewsClient
+	Scheduler *jobs.Scheduler
+	GeminiClient clients.GeminiClient
 }
 
 // Config represents the configuration of the server.
@@ -49,7 +54,7 @@ func (app *Application) Mount() http.Handler {
 	)
 
 	// Create services
-	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, votesRepo)
+	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient, app.GeminiClient, votesRepo)
 	usersService := services.NewUserService(usersRepo)
 	commentsService := services.NewCommentService(commentsRepo, usersRepo, articlesRepo)
 
@@ -57,6 +62,9 @@ func (app *Application) Mount() http.Handler {
 	articlesHandler := handlers.NewArticlesHandler(articlesService)
 	commentsHandler := handlers.NewCommentsHandler(commentsService)
 	usersHandler := handlers.NewUsersHandler(usersService)
+
+	// Initialize the scheduler for daily article synchronization
+	app.Scheduler = jobs.NewScheduler(articlesService)
 
 	// Define the routes and their handlers
 
@@ -73,9 +81,11 @@ func (app *Application) Mount() http.Handler {
 	mux.HandleFunc("POST /v1/users/login", usersHandler.HandleLoginUser)
 	mux.HandleFunc("POST /v1/articles", middleware.AuthMiddleware(articlesHandler.HandleCreateArticle))
 	mux.HandleFunc("POST /v1/comments", middleware.AuthMiddleware(commentsHandler.HandleCreateComment))
+	mux.HandleFunc("POST /v1/articles/{id}/summary", middleware.AuthMiddleware(articlesHandler.HandleGenerateSummary))
 	mux.HandleFunc("DELETE /v1/comments/{id}", middleware.AuthMiddleware(commentsHandler.HandleDeleteComment))
 	mux.HandleFunc("DELETE /v1/articles/{id}", middleware.AuthMiddleware(articlesHandler.HandleDeleteArticle))
 	mux.HandleFunc("DELETE /v1/users/{id}", middleware.AuthMiddleware(usersHandler.HandleDeleteUser))
+
 
 	//first wrapping the router with CORS
 	corsHandler := middleware.EnableCORS(mux)

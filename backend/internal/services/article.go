@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
+	"github.com/YahyaMudallal/newsWebSite/internal/clients"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"github.com/YahyaMudallal/newsWebSite/internal/repositories"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,21 +18,34 @@ type ArticleService struct {
 	articleRepo repositories.ArticleRepository
 	userRepo    repositories.UserRepository
 	commentRepo repositories.CommentRepository
-	votesRepo   repositories.VoteRepository
+	newsClient clients.NewsClient
+	geminiClient clients.GeminiClient
+  votesRepo   repositories.VoteRepository
+}
+
+// NewArticleService creates a new ArticleService.
+func NewArticleService(
+	articleRepo repositories.ArticleRepository,
+	userRepo repositories.UserRepository,
+	commentRepo repositories.CommentRepository,
+	newsClient clients.NewsClient,
+	geminiClient clients.GeminiClient,
+  votesRepo repositories.VoteRepository
+	) *ArticleService {
+	return &ArticleService{
+		articleRepo: articleRepo,
+		userRepo: userRepo,
+		commentRepo: commentRepo,
+		newsClient: newsClient,
+		geminiClient: geminiClient,
+    votesRepo: votesRepo
+	}
 }
 
 // Create a new Response Struct that combines them
 type ArticleResponse struct {
 	models.Article `bson:",inline"` // Embeds all the standard article fields
 	UserVote       int              `json:"userVote"`
-}
-
-// NewArticleService creates a new ArticleService.
-func NewArticleService(articleRepo repositories.ArticleRepository,
-	userRepo repositories.UserRepository,
-	commentRepo repositories.CommentRepository,
-	votesRepo repositories.VoteRepository) *ArticleService {
-	return &ArticleService{articleRepo: articleRepo, userRepo: userRepo, commentRepo: commentRepo, votesRepo: votesRepo}
 }
 
 // GetAllArticles retrieves all articles.
@@ -120,6 +135,61 @@ func (s *ArticleService) DeleteArticle(ctx context.Context, articleID bson.Objec
 
 	// delete the article
 	return s.articleRepo.Delete(ctx, articleID)
+}
+
+// SyncDailyArticles Called daily by the server to Synchronize the articles database
+// by calling the new api to get new articles and add them to the database.
+func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
+	// fetch the article from the client
+	newArticles, err := s.newsClient.FetchDailyArticles(ctx)
+	if err != nil {
+		return fmt.Errorf("%w : failed to fetch articles from news client", apperrors.ErrInternal)
+	}
+
+	log.Printf("DEBUG: The news API returned %d articles", len(newArticles))
+
+	// save the articles in the database (maybe add CreateMany in the repository for better performance)
+	_, err = s.articleRepo.CreateMany(ctx, newArticles)
+	if err != nil {
+		return fmt.Errorf("%w : failed to save articles in the database", apperrors.ErrInternal)
+	}
+
+	return nil
+}
+
+// GenerateSummary call the Gemini API to generate a summary (tldr) for the given article and update the article in the database with the new summary.
+func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.ObjectID) error {
+
+	// get the article from the database
+	article, err := s.articleRepo.GetByID(ctx, articleID)
+	if err != nil {
+		return fmt.Errorf("%w : failed to get the article from the database: %w", apperrors.ErrInternal, err)
+	}
+
+	// check if the article has already a summary
+	if article.Summary != "" {
+		return fmt.Errorf("%w : the article already has a summary", apperrors.ErrValidation)
+	}
+
+	// call the Gemini API to generate a summary for the article
+	summary, err := s.geminiClient.GenerateTLDR(ctx, article)
+	if err != nil {
+		return fmt.Errorf("%w : failed to generate the summary: %w", apperrors.ErrInternal, err)
+	}
+
+	// add the summary to the article
+	article.Summary = summary
+
+	// update the updated at date
+	article.UpdatedAt = time.Now()
+
+	// update the article in the database
+	err = s.articleRepo.Update(ctx, article)
+	if err != nil {
+		return fmt.Errorf("%w : failed to update the article in the database: %w", apperrors.ErrInternal, err)
+	}
+
+	return nil
 }
 
 // ToggleUpvote toggles the upvote status of an article by its ID.

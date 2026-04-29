@@ -105,6 +105,28 @@ func (h *ArticlesHandler) HandleDeleteArticle(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// HandleGenerateSummary generates a summary for an article by ID.
+func (h *ArticlesHandler) HandleGenerateSummary(w http.ResponseWriter, r *http.Request) {
+  // parse query
+	idStr := r.PathValue("id")
+	articleID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid article ID", http.StatusBadRequest)
+		return
+	}
+  
+  // call the service layer to generate the summary
+	ctx := r.Context()
+	err = h.service.GenerateSummary(ctx, articleID)
+  if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+  
+  // return no content status
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // HandleUpvoteArticle upvotes an article by ID.
 func (h *ArticlesHandler) HandleToggleUpvote(w http.ResponseWriter, r *http.Request) {
 	// parse query
@@ -114,7 +136,7 @@ func (h *ArticlesHandler) HandleToggleUpvote(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Invalid article ID", http.StatusBadRequest)
 		return
 	}
-
+  
 	// get the id of the user from the context
 	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
 	if !ok {
@@ -129,10 +151,9 @@ func (h *ArticlesHandler) HandleToggleUpvote(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
-
+  
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{"upvotes": nbUpvotes})
-
 }
 
 // HandleDownvoteArticle downvotes an article by ID.
