@@ -235,6 +235,7 @@ export default function NewsCard({ article }: { article: Article}) {
               comments.map(c => (
                 <div key={c.id} className={styles.comment}>
                   <span className={styles.commentAuthor}>{c.authorName}</span>
+                  <span className={styles.commentTimestamp}>•</span>
                   <span className={styles.commentTimestamp}>{FormatTimeAgo(c.createdAt)}</span>
                   <p className={styles.commentText}>{c.content}</p>
                 </div>
