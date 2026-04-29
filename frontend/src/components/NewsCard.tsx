@@ -149,7 +149,7 @@ export default function NewsCard({ article }: { article: Article}) {
         <span className={styles.sourceTag}>{article.source}</span>
       </div>
       
-      <h2 className={styles.articleTitle}>{article.title}</h2>
+      <h2 className={styles.articleTitle}><a href={article.originalUrl}>{article.title}</a></h2>
       <p className={styles.articleDesc}>{article.description}</p>
 
       {/* Action Bar */}

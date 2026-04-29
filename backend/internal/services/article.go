@@ -30,7 +30,7 @@ func NewArticleService(
 	commentRepo repositories.CommentRepository,
 	newsClient clients.NewsClient,
 	geminiClient clients.GeminiClient,
-  votesRepo repositories.VoteRepository
+  	votesRepo repositories.VoteRepository,
 	) *ArticleService {
 	return &ArticleService{
 		articleRepo: articleRepo,
@@ -38,7 +38,7 @@ func NewArticleService(
 		commentRepo: commentRepo,
 		newsClient: newsClient,
 		geminiClient: geminiClient,
-    votesRepo: votesRepo
+    	votesRepo: votesRepo,
 	}
 }
 
