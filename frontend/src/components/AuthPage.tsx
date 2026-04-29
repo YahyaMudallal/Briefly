@@ -46,7 +46,7 @@ export default function AuthPage() {
     return "";
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const err = validate();
     if (err) { setError(err); return; }
@@ -101,7 +101,7 @@ export default function AuthPage() {
 
   return (
     <div className={styles.page}>
-      {/* Left panel — hidden on mobile via CSS */}
+      {/* Left panel */}
       <div className={styles.left}>
         <div className={styles.leftContent}>
             {/*<Logo />*/}
@@ -219,7 +219,7 @@ export default function AuthPage() {
   );
 }
 
-/* ── Reusable field ────────────────────────────────────────── */
+// Reusable field */
 
 interface FieldProps {
   label: string;

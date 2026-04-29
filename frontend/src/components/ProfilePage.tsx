@@ -7,7 +7,7 @@ export default function ProfilePage() {
   return (
     <div className={styles.page}>
       <Header />
-      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
         <h1>Profile Page</h1>
         {user && (
           <div>

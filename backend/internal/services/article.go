@@ -16,10 +16,11 @@ import (
 // ArticleService provides business logic for articles.
 type ArticleService struct {
 	articleRepo repositories.ArticleRepository
-	userRepo repositories.UserRepository
+	userRepo    repositories.UserRepository
 	commentRepo repositories.CommentRepository
 	newsClient clients.NewsClient
 	geminiClient clients.GeminiClient
+  votesRepo   repositories.VoteRepository
 }
 
 // NewArticleService creates a new ArticleService.
@@ -29,6 +30,7 @@ func NewArticleService(
 	commentRepo repositories.CommentRepository,
 	newsClient clients.NewsClient,
 	geminiClient clients.GeminiClient,
+  votesRepo repositories.VoteRepository
 	) *ArticleService {
 	return &ArticleService{
 		articleRepo: articleRepo,
@@ -36,12 +38,53 @@ func NewArticleService(
 		commentRepo: commentRepo,
 		newsClient: newsClient,
 		geminiClient: geminiClient,
+    votesRepo: votesRepo
 	}
 }
 
+// Create a new Response Struct that combines them
+type ArticleResponse struct {
+	models.Article `bson:",inline"` // Embeds all the standard article fields
+	UserVote       int              `json:"userVote"`
+}
+
 // GetAllArticles retrieves all articles.
-func (s *ArticleService) GetAllArticles(ctx context.Context) ([]models.Article, error) {
-	return s.articleRepo.GetAll(ctx)
+func (s *ArticleService) GetAllArticles(ctx context.Context) ([]ArticleResponse, error) {
+	//we need to inject logged-in user vote status into the articles before returning them,
+	//so we need to get all the articles first, then get the votes for each article for the logged-in user and inject them into the articles
+
+	articles, err := s.articleRepo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w : failed to retrieve articles", apperrors.ErrInternal)
+	}
+	userID, ok := ctx.Value("user_id").(bson.ObjectID)
+	// i tried bothe ctx.Value("user_id") and ctx.Value("user_id")
+
+	var userVotes map[bson.ObjectID]int // Map to easily look up votes by Article ID
+
+	if userID != bson.NilObjectID && ok {
+		// Get all votes for the logged-in user for these articles
+		votes, err := s.votesRepo.GetAllByUserID(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("%w : failed to retrieve user votes", apperrors.ErrInternal)
+		}
+
+		// Build the map
+		userVotes = make(map[bson.ObjectID]int)
+		for _, v := range votes {
+			userVotes[v.ArticleID] = v.Type // 1 or -1
+		}
+	}
+
+	var feed []ArticleResponse
+	for _, article := range articles {
+		feed = append(feed, ArticleResponse{
+			Article:  article,
+			UserVote: userVotes[article.ID], // Will be 0 if the user hasn't voted on this article
+		})
+	}
+
+	return feed, nil
 }
 
 // GetArticleByID retrieves an article by its ID.
@@ -147,4 +190,67 @@ func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.Obj
 	}
 
 	return nil
+}
+
+// ToggleUpvote toggles the upvote status of an article by its ID.
+func (s *ArticleService) ToggleUpvote(ctx context.Context, articleID bson.ObjectID, userID bson.ObjectID) (int, error) {
+	// check if the article exists
+	_, err := s.articleRepo.GetByID(ctx, articleID)
+	if err != nil {
+		return 0, fmt.Errorf("%w : article not found", apperrors.ErrNotFound)
+	}
+
+	// ToggleUpvote returns 1 if it was from an upvote to no vote, -1 if it was from a downvote to upvote, and 0 if it was from no vote to upvote
+	prevStatus, err := s.votesRepo.ToggleUpvote(ctx, articleID, userID)
+	if err != nil {
+		return 0, fmt.Errorf("%w : failed to toggle upvote", apperrors.ErrInternal)
+	}
+	//update the article's upvote count
+	switch prevStatus {
+	case 0: // novote -> upvote
+		err = s.articleRepo.IncrementUpVotes(ctx, articleID, 1)
+	case -1: // downvote -> upvote
+		err = s.articleRepo.IncrementUpVotes(ctx, articleID, 1)
+		err = s.articleRepo.IncrementDownVotes(ctx, articleID, -1)
+	case 1: // upvote -> novote
+		err = s.articleRepo.IncrementUpVotes(ctx, articleID, -1)
+	}
+	if err != nil {
+		return 0, fmt.Errorf("%w : failed to increment article upvote count", apperrors.ErrInternal)
+	}
+	article, err := s.articleRepo.GetByID(ctx, articleID)
+
+	return article.UpVotes, nil
+}
+
+// ToggleDownvote toggles the downvote status of an article by its ID.
+func (s *ArticleService) ToggleDownvote(ctx context.Context, articleID bson.ObjectID, userID bson.ObjectID) (int, error) {
+	// check if the article exists
+	_, err := s.articleRepo.GetByID(ctx, articleID)
+	if err != nil {
+		return 0, fmt.Errorf("%w : article not found", apperrors.ErrNotFound)
+	}
+
+	prevStatus, err := s.votesRepo.ToggleDownvote(ctx, articleID, userID)
+	if err != nil {
+		return 0, fmt.Errorf("%w : failed to toggle downvote", apperrors.ErrInternal)
+	}
+	// update the article's downvote count
+	switch prevStatus {
+	case 0: // novote -> downvote
+		err = s.articleRepo.IncrementDownVotes(ctx, articleID, 1)
+	case 1: // upvote -> downvote
+		err = s.articleRepo.IncrementDownVotes(ctx, articleID, 1)
+		err = s.articleRepo.IncrementUpVotes(ctx, articleID, -1)
+	case -1: // downvote -> novote
+		err = s.articleRepo.IncrementDownVotes(ctx, articleID, -1)
+	}
+	if err != nil {
+		return 0, fmt.Errorf("%w : failed to increment article downvote count", apperrors.ErrInternal)
+	}
+	article, err := s.articleRepo.GetByID(ctx, articleID)
+	if err != nil {
+		return 0, fmt.Errorf("%w : failed to get article", apperrors.ErrInternal)
+	}
+	return article.DownVotes, nil
 }

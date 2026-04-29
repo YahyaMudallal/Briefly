@@ -17,6 +17,7 @@ type Article struct {
 	Source        string        	`bson:"source" json:"source"`
 	UpVotes       int           	`bson:"up_votes" json:"upvotes"`
 	DownVotes     int           	`bson:"down_votes" json:"downvotes"`
+  NbComments  int           `bson:"nb_comments" json:"nbComments"`
 	Summary       string        	`bson:"summary" json:"summary"`
 	PublishedAt	  time.Time			`bson:"published_at" json:"publishedAt"`
 	CreatedAt     time.Time     	`bson:"created_at" json:"createdAt"`

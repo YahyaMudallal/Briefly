@@ -18,6 +18,7 @@ import (
 const articlesCollection = "articles"
 const usersCollection = "users"
 const commentsCollection = "comments"
+const votesCollection = "votes"
 
 // Application represents the main structure of the server.
 // Contains configuration, database, and dependencies.
@@ -48,11 +49,14 @@ func (app *Application) Mount() http.Handler {
 	commentsRepo := repositories.NewMongoCommentRepository(
 		app.Database.GetCollection(commentsCollection),
 	)
+	votesRepo := repositories.NewMongoVoteRepository(
+		app.Database.GetCollection(votesCollection),
+	)
 
 	// Create services
-	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient, app.GeminiClient)
+	articlesService := services.NewArticleService(articlesRepo, usersRepo, commentsRepo, app.NewsClient, app.GeminiClient, votesRepo)
 	usersService := services.NewUserService(usersRepo)
-	commentsService := services.NewCommentService(commentsRepo, usersRepo)
+	commentsService := services.NewCommentService(commentsRepo, usersRepo, articlesRepo)
 
 	// Create handlers with dependency injection
 	articlesHandler := handlers.NewArticlesHandler(articlesService)
@@ -64,8 +68,10 @@ func (app *Application) Mount() http.Handler {
 
 	// Define the routes and their handlers
 
-	mux.HandleFunc("GET /v1/articles", articlesHandler.HandleGetArticles)
+	mux.HandleFunc("GET /v1/articles", middleware.OptionalAuthMiddleware(articlesHandler.HandleGetArticles))
 	mux.HandleFunc("GET /v1/articles/{id}", articlesHandler.HandleGetArticle)
+	mux.HandleFunc("POST /v1/articles/{id}/upvote", middleware.AuthMiddleware(articlesHandler.HandleToggleUpvote))
+	mux.HandleFunc("POST /v1/articles/{id}/downvote", middleware.AuthMiddleware(articlesHandler.HandleToggleDownvote))
 	mux.HandleFunc("GET /v1/comments", commentsHandler.HandleGetComments)
 	mux.HandleFunc("GET /v1/comments/{id}", commentsHandler.HandleGetComment)
 	mux.HandleFunc("GET /v1/users", usersHandler.HandleGetUsers)
