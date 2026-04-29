@@ -8,6 +8,7 @@ import (
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // MongoArticleRepository implements ArticleRepository using MongoDB.
@@ -65,13 +66,26 @@ func (r *MongoArticleRepository) Create(ctx context.Context, article *models.Art
 
 // CreateMany inserts new articles into the database.
 func (r *MongoArticleRepository) CreateMany(ctx context.Context, articles []models.Article) ([]models.Article, error) {
-	result, err := r.collection.InsertMany(ctx, articles)
+
+	// convert the typed array in an interface array
+	var docs []interface{}
+	for _, article := range articles {
+		docs = append(docs, article)
+	} 
+
+	opts := options.InsertMany().SetOrdered(false)
+
+	// inset the interface array
+	result, err := r.collection.InsertMany(ctx, docs, opts)
 	if err != nil {
 		return nil, fmt.Errorf("%w : failed to insert articles: %w", apperrors.ErrInternal, err )
 	}
+
+	// assign new IDs
 	for i, id := range result.InsertedIDs {
 		articles[i].ID = id.(bson.ObjectID)
 	}
+
 	return articles, nil
 }
 

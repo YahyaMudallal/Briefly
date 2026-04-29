@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
@@ -97,13 +98,15 @@ func (s *ArticleService) DeleteArticle(ctx context.Context, articleID bson.Objec
 // by calling the new api to get new articles and add them to the database.
 func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
 	// fetch the article from the client
-	newArtciles, err := s.newsClient.FetchDailyArticles(ctx)
+	newArticles, err := s.newsClient.FetchDailyArticles(ctx)
 	if err != nil {
 		return fmt.Errorf("%w : failed to fetch articles from news client", apperrors.ErrInternal)
 	}
 
+	log.Printf("DEBUG: The news API returned %d articles", len(newArticles))
+
 	// save the articles in the database (maybe add CreateMany in the repository for better performance)
-	_, err = s.articleRepo.CreateMany(ctx, newArtciles)
+	_, err = s.articleRepo.CreateMany(ctx, newArticles)
 	if err != nil {
 		return fmt.Errorf("%w : failed to save articles in the database", apperrors.ErrInternal)
 	}
@@ -133,6 +136,9 @@ func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.Obj
 
 	// add the summary to the article
 	article.Summary = summary
+
+	// update the updated at date
+	article.UpdatedAt = time.Now()
 
 	// update the article in the database
 	err = s.articleRepo.Update(ctx, article)

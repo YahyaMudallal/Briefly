@@ -40,7 +40,7 @@ func main() {
 		dbName = "main"
 	}
 
-	newAPIKey := os.Getenv("NEWS_API_KEY")
+	newAPIKey := os.Getenv("NEWSDATA_API_KEY")
 	if newAPIKey == "" {
 		newAPIKey = "PLACEHOLDER_API_KEY"
 	}

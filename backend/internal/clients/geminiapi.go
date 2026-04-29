@@ -33,7 +33,7 @@ func NewGeminiAPIClient(ctx context.Context, apiKey string) (GeminiClient , erro
 func (c *GeminiAPIClient) GenerateTLDR(ctx context.Context, article *models.Article) (string, error) {
 
 	// use the 1.5 flash model for speed and lower cost
-	modelID := "gemini-1.5-flash"
+	modelID := "gemini-flash-latest"
 
 	// prompt engineering to generate a concise summary of the article
 	prompt := fmt.Sprintf(`
@@ -62,7 +62,7 @@ func (c *GeminiAPIClient) GenerateTLDR(ctx context.Context, article *models.Arti
 	
 	// extract the generated summary from the response
 	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-		return fmt.Sprint(resp.Candidates[0].Content.Parts[0]), nil
+		return resp.Candidates[0].Content.Parts[0].Text, nil
 	}
 
 	// if we reach here, it means the response did not contain the expected content

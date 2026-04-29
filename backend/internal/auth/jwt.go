@@ -13,7 +13,7 @@ import (
 func GenerateToken(userID bson.ObjectID) (string, error) {
 
 	// get the secret key
-	secret := os.Getenv("JWT_SERCRET")
+	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		secret = "default_secret_phrase" // remove in production
 	}
@@ -52,7 +52,7 @@ func VerifyToken(tokenString string) (bson.ObjectID, error) {
     })
 
 	if err != nil || !token.Valid {
-		return bson.NilObjectID, fmt.Errorf("token invalid or has expired")
+		return bson.NilObjectID, fmt.Errorf("token invalid: %v", err)
 	}
 
 	// extract userID
