@@ -54,7 +54,7 @@ func (r *MongoArticleRepository) GetByID(ctx context.Context, id bson.ObjectID) 
 }
 
 // Create inserts a new article into the database.
-func (r * MongoArticleRepository) Create(ctx context.Context, article *models.Article) (*models.Article, error) {
+func (r *MongoArticleRepository) Create(ctx context.Context, article *models.Article) (*models.Article, error) {
 	result, err := r.collection.InsertOne(ctx, article)
 	if err != nil {
 		return nil, fmt.Errorf("%w : failed to insert article: %w", apperrors.ErrInternal, err)
@@ -75,5 +75,53 @@ func (r *MongoArticleRepository) Delete(ctx context.Context, id bson.ObjectID) e
 		return fmt.Errorf("%w : article not found", apperrors.ErrNotFound)
 	}
 
+	return nil
+}
+
+// IncrementCommentCount securely updates the comment count using atomic $inc
+func (r *MongoArticleRepository) IncrementCommentCount(ctx context.Context, articleID bson.ObjectID, amount int) error {
+	result, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": articleID},
+		bson.M{"$inc": bson.M{"nb_comments": amount}},
+	)
+	if err != nil {
+		return fmt.Errorf("%w: failed to increment article comment count: %w", apperrors.ErrInternal, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: article not found", apperrors.ErrNotFound)
+	}
+	return nil
+}
+
+// IncrementUpVotes securely updates the upvote count using atomic $inc
+func (r *MongoArticleRepository) IncrementUpVotes(ctx context.Context, articleID bson.ObjectID, amount int) error {
+	result, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": articleID},
+		bson.M{"$inc": bson.M{"up_votes": amount}},
+	)
+	if err != nil {
+		return fmt.Errorf("%w: failed to increment article upvote count: %w", apperrors.ErrInternal, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: article not found", apperrors.ErrNotFound)
+	}
+	return nil
+}
+
+// IncrementDownVotes securely updates the downvote count using atomic $inc
+func (r *MongoArticleRepository) IncrementDownVotes(ctx context.Context, articleID bson.ObjectID, amount int) error {
+	result, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": articleID},
+		bson.M{"$inc": bson.M{"down_votes": amount}},
+	)
+	if err != nil {
+		return fmt.Errorf("%w: failed to increment article downvote count: %w", apperrors.ErrInternal, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: article not found", apperrors.ErrNotFound)
+	}
 	return nil
 }

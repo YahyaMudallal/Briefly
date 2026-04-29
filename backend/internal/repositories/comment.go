@@ -51,7 +51,7 @@ func (r *MongoCommentRepository) GetByID(ctx context.Context, id bson.ObjectID) 
 		return nil, fmt.Errorf("%w : failed to query comment: %w", apperrors.ErrInternal, err)
 	}
 
-	// comment not found if content is empty 
+	// comment not found if content is empty
 	if comment.Content == "" {
 		return nil, fmt.Errorf("%w: comment not found", apperrors.ErrNotFound)
 	}
@@ -119,8 +119,8 @@ func (r *MongoCommentRepository) Update(ctx context.Context, comment *models.Com
 // DeleteByArticleID deletes all comments of a specific article.
 func (r *MongoCommentRepository) DeleteByArticleID(ctx context.Context, articleID bson.ObjectID) error {
 	_, err := r.collection.DeleteMany(ctx, bson.M{"article_id": articleID})
-    if err != nil {
-        return fmt.Errorf("%w: failed to delete comments for article: %w", apperrors.ErrInternal, err)
-    }
-    return nil
+	if err != nil {
+		return fmt.Errorf("%w: failed to delete comments for article: %w", apperrors.ErrInternal, err)
+	}
+	return nil
 }

@@ -24,13 +24,14 @@ func NewArticlesHandler(service *services.ArticleService) *ArticlesHandler {
 func (h *ArticlesHandler) HandleGetArticles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	articles, err := h.service.GetAllArticles(ctx)
+
 	if err != nil {
 		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(articles)
+
 }
 
 // HandleGetArticle returns a single article by ID.
@@ -102,4 +103,62 @@ func (h *ArticlesHandler) HandleDeleteArticle(w http.ResponseWriter, r *http.Req
 
 	// return no content status
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// HandleUpvoteArticle upvotes an article by ID.
+func (h *ArticlesHandler) HandleToggleUpvote(w http.ResponseWriter, r *http.Request) {
+	// parse query
+	idStr := r.PathValue("id")
+	articleID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid article ID", http.StatusBadRequest)
+		return
+	}
+
+	// get the id of the user from the context
+	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// call service layer to upvote the article
+	ctx := r.Context()
+	nbUpvotes, err := h.service.ToggleUpvote(ctx, articleID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"upvotes": nbUpvotes})
+
+}
+
+// HandleDownvoteArticle downvotes an article by ID.
+func (h *ArticlesHandler) HandleToggleDownvote(w http.ResponseWriter, r *http.Request) {
+	// parse query
+	idStr := r.PathValue("id")
+	articleID, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.Error(w, "Invalid article ID", http.StatusBadRequest)
+		return
+	}
+
+	// get the id of the user from the context
+	userID, ok := r.Context().Value("user_id").(bson.ObjectID)
+	if !ok {
+		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// call service layer to downvote the article
+	ctx := r.Context()
+	nbDownvotes, err := h.service.ToggleDownvote(ctx, articleID, userID)
+	if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"downvotes": nbDownvotes})
 }
