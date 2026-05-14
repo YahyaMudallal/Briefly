@@ -7,6 +7,7 @@ import styles from "../css/AuthPage.module.css";
 import logoDarkHalf from "../assets/logoDarkHalf.png";
 import logoBrightFull from "../assets/logoBrightFull.png";
 
+import { API_BASE_URL } from "../config";
 
 type Mode = "login" | "signup";
 
@@ -53,7 +54,7 @@ export default function AuthPage() {
     
     setLoading(true);
     setError("");
-    const url = "http://localhost:8080";
+    const url = API_BASE_URL;
     const endpoint = (mode === "login") ? "/v1/users/login" : "/v1/users";
     const body = (mode === "login") ? 
                 {email, password} : 

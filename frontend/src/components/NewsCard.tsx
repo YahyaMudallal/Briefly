@@ -4,7 +4,7 @@ import styles from '../css/HomePage.module.css';
 import { Link, useNavigate } from "react-router";
 import { useUser } from "../context/UserContext";
 import FormatTimeAgo from "./FormatTimeAgo";
-
+import { API_BASE_URL } from "../config";
 
 // --- INDIVIDUAL NEWS CARD COMPONENT ---
 export default function NewsCard({ article }: { article: Article}) {
@@ -34,7 +34,7 @@ export default function NewsCard({ article }: { article: Article}) {
     if (!newComment.trim()) return;
     console.log("Submitting comment:", newComment);
     setNewComment("");
-    const url = "http://localhost:8080/v1/comments";
+    const url = `${API_BASE_URL}/v1/comments`;
     const body = {
       articleId: article.id,
       authorId: user?.id,
@@ -72,7 +72,7 @@ export default function NewsCard({ article }: { article: Article}) {
 
   //fetch comments for this article from backend and display them in the comments section when showComments is trues
   const fetchComments = () => {
-    const url = `http://localhost:8080/v1/comments/article/${article.id}`;
+    const url = `${API_BASE_URL}/v1/comments/article/${article.id}`;
     fetch(url, {
       method: "GET",
       headers: {
@@ -96,7 +96,7 @@ export default function NewsCard({ article }: { article: Article}) {
   };
 
   const toggleUpVote = () => {
-    const url = `http://localhost:8080/v1/articles/${article.id}/upvote`;
+    const url = `${API_BASE_URL}/v1/articles/${article.id}/upvote`;
     fetch(url, {
       method: "POST",
       headers: {
@@ -121,7 +121,7 @@ export default function NewsCard({ article }: { article: Article}) {
   };
 
   const toggleDownVote = () => {
-    const url = `http://localhost:8080/v1/articles/${article.id}/downvote`;
+    const url = `${API_BASE_URL}/v1/articles/${article.id}/downvote`;
     fetch(url, {
       method: "POST",
       headers: {
@@ -166,7 +166,7 @@ export default function NewsCard({ article }: { article: Article}) {
     setShowTldr(true);
 
     try {
-      const url = `http://localhost:8080/v1/articles/${article.id}/summary`;
+      const url = `${API_BASE_URL}/v1/articles/${article.id}/summary`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
