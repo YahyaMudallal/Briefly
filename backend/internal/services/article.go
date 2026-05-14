@@ -158,23 +158,23 @@ func (s *ArticleService) SyncDailyArticles(ctx context.Context) error {
 }
 
 // GenerateSummary call the Gemini API to generate a summary (tldr) for the given article and update the article in the database with the new summary.
-func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.ObjectID) error {
+func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.ObjectID) (string, error) {
 
 	// get the article from the database
 	article, err := s.articleRepo.GetByID(ctx, articleID)
 	if err != nil {
-		return fmt.Errorf("%w : failed to get the article from the database: %w", apperrors.ErrInternal, err)
+		return "", fmt.Errorf("%w : failed to get the article from the database: %w", apperrors.ErrInternal, err)
 	}
 
 	// check if the article has already a summary
 	if article.Summary != "" {
-		return fmt.Errorf("%w : the article already has a summary", apperrors.ErrValidation)
+		return "", fmt.Errorf("%w : the article already has a summary", apperrors.ErrValidation)
 	}
 
 	// call the Gemini API to generate a summary for the article
 	summary, err := s.geminiClient.GenerateTLDR(ctx, article)
 	if err != nil {
-		return fmt.Errorf("%w : failed to generate the summary: %w", apperrors.ErrInternal, err)
+		return "", fmt.Errorf("%w : failed to generate the summary: %w", apperrors.ErrInternal, err)
 	}
 
 	// add the summary to the article
@@ -186,10 +186,10 @@ func (s *ArticleService) GenerateSummary(ctx context.Context, articleID bson.Obj
 	// update the article in the database
 	err = s.articleRepo.Update(ctx, article)
 	if err != nil {
-		return fmt.Errorf("%w : failed to update the article in the database: %w", apperrors.ErrInternal, err)
+		return "", fmt.Errorf("%w : failed to update the article in the database: %w", apperrors.ErrInternal, err)
 	}
 
-	return nil
+	return summary, nil
 }
 
 // ToggleUpvote toggles the upvote status of an article by its ID.

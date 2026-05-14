@@ -4,7 +4,7 @@ import styles from '../css/HomePage.module.css';
 import { Link, useNavigate } from "react-router";
 import { useUser } from "../context/UserContext";
 import FormatTimeAgo from "./FormatTimeAgo";
-
+import { API_BASE_URL } from "../config";
 
 // --- INDIVIDUAL NEWS CARD COMPONENT ---
 export default function NewsCard({ article }: { article: Article}) {
@@ -19,6 +19,9 @@ export default function NewsCard({ article }: { article: Article}) {
   const [nbUpvotes, setNbUpvotes] = useState(article.upvotes);
   const [nbDownvotes, setNbDownvotes] = useState(article.downvotes);
 
+  const [localSummary, setLocalSummary] = useState<string>(article.summary);
+  const [isGeneratingTldr, setIsGeneratingTldr] = useState<boolean>(false);
+
   useEffect(() => {
     setIsUpvoted(article.userVote === 1);
     setIsDownvoted(article.userVote === -1);
@@ -31,7 +34,7 @@ export default function NewsCard({ article }: { article: Article}) {
     if (!newComment.trim()) return;
     console.log("Submitting comment:", newComment);
     setNewComment("");
-    const url = "http://localhost:8080/v1/comments";
+    const url = `${API_BASE_URL}/v1/comments`;
     const body = {
       articleId: article.id,
       authorId: user?.id,
@@ -69,7 +72,7 @@ export default function NewsCard({ article }: { article: Article}) {
 
   //fetch comments for this article from backend and display them in the comments section when showComments is trues
   const fetchComments = () => {
-    const url = `http://localhost:8080/v1/comments/article/${article.id}`;
+    const url = `${API_BASE_URL}/v1/comments/article/${article.id}`;
     fetch(url, {
       method: "GET",
       headers: {
@@ -93,7 +96,7 @@ export default function NewsCard({ article }: { article: Article}) {
   };
 
   const toggleUpVote = () => {
-    const url = `http://localhost:8080/v1/articles/${article.id}/upvote`;
+    const url = `${API_BASE_URL}/v1/articles/${article.id}/upvote`;
     fetch(url, {
       method: "POST",
       headers: {
@@ -118,7 +121,7 @@ export default function NewsCard({ article }: { article: Article}) {
   };
 
   const toggleDownVote = () => {
-    const url = `http://localhost:8080/v1/articles/${article.id}/downvote`;
+    const url = `${API_BASE_URL}/v1/articles/${article.id}/downvote`;
     fetch(url, {
       method: "POST",
       headers: {
@@ -142,6 +145,50 @@ export default function NewsCard({ article }: { article: Article}) {
       alert("Failed to toggle downvote. Please try again.");
     });
   };
+
+  const handleTldrClick = async () => {
+    
+    // if there is already a generated summary show it
+    if (localSummary) {
+      setShowTldr(!showTldr);
+      return;
+    }
+
+    // if not and the user is not logged in, redirect to login page
+    if (!token) {
+      alert("Please sign in to generate TL;DR");
+      navigate("/auth");
+      return;
+    }
+
+    // else generate the summary
+    setIsGeneratingTldr(true);
+    setShowTldr(true);
+
+    try {
+      const url = `${API_BASE_URL}/v1/articles/${article.id}/summary`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error("Failed to generate summary");
+
+      const data = await res.json();
+      setLocalSummary(data.summary);
+    }
+    catch (err) {
+      console.error("Error generating summary:", err);
+      alert("Failed to generate TL;DR. Please try again.");
+      setShowTldr(false);
+    }
+    finally {
+      setIsGeneratingTldr(false);
+    }
+  }
 
   return (
     <article className={styles.card}>
@@ -203,9 +250,10 @@ export default function NewsCard({ article }: { article: Article}) {
         <div className={styles.featureGroup}>
           <button 
             className={`${styles.tldrBtn} ${showTldr ? styles.activeTldr : ''}`}
-            onClick={() => setShowTldr(!showTldr)}
+            onClick={handleTldrClick}
+            disabled={isGeneratingTldr}
           >
-            ✨ AI TL;DR
+            {isGeneratingTldr ? "✨ Génération..." : "✨ AI TL;DR"}
           </button>
           <button 
             className={`${styles.actionBtn} ${showComments ? styles.activeCommentBtn : ''}`}
@@ -221,7 +269,11 @@ export default function NewsCard({ article }: { article: Article}) {
       {/* Expandable TL;DR Section */}
       {showTldr && (
         <div className={styles.tldrBox}>
-          <strong>Summary:</strong> {article.summary}
+          {isGeneratingTldr ? (
+            <em>Generating summary...</em>
+          ) : (
+            <><strong>Summary:</strong> {localSummary}</>
+          )}
         </div>
       )}
 

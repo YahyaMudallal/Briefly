@@ -107,7 +107,7 @@ func (h *ArticlesHandler) HandleDeleteArticle(w http.ResponseWriter, r *http.Req
 
 // HandleGenerateSummary generates a summary for an article by ID.
 func (h *ArticlesHandler) HandleGenerateSummary(w http.ResponseWriter, r *http.Request) {
-  // parse query
+	// parse query
 	idStr := r.PathValue("id")
 	articleID, err := bson.ObjectIDFromHex(idStr)
 	if err != nil {
@@ -115,16 +115,17 @@ func (h *ArticlesHandler) HandleGenerateSummary(w http.ResponseWriter, r *http.R
 		return
 	}
   
-  // call the service layer to generate the summary
+ 	// call the service layer to generate the summary
 	ctx := r.Context()
-	err = h.service.GenerateSummary(ctx, articleID)
+	summary, err := h.service.GenerateSummary(ctx, articleID)
   if err != nil {
 		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
 	}
   
-  // return no content status
-	w.WriteHeader(http.StatusNoContent)
+  	// return the generated summary
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"summary": summary})
 }
 
 // HandleUpvoteArticle upvotes an article by ID.

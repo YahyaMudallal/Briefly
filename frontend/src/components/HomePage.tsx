@@ -4,7 +4,7 @@ import type { Article } from '../types/types';
 import Header from './Header'
 import NewsCard from './NewsCard'
 import { useEffect, useState} from 'react';
-
+import { API_BASE_URL } from '../config';
 
 // --- MAIN PAGE COMPONENT ---
 export default function HomePage() {
@@ -13,7 +13,7 @@ export default function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const { token, loading } = useUser(); 
   
-  const url = "http://localhost:8080/v1/articles";
+  const url = `${API_BASE_URL}/v1/articles`;
   
   // Fetch articles from backend on component mount
   useEffect(() => {
