@@ -10,6 +10,7 @@ import (
 // ArticleRepository defines methods for article data access.
 type ArticleRepository interface {
 	GetAll(ctx context.Context) ([]models.Article, error)
+	GetPaginated(ctx context.Context, page int, limit int, sortBy string, order string) ([]models.Article, error)
 	GetByID(ctx context.Context, id bson.ObjectID) (*models.Article, error)
 	Create(ctx context.Context, article *models.Article) (*models.Article, error)
 	CreateMany(ctx context.Context, articles []models.Article) ([]models.Article, error)

@@ -3,6 +3,7 @@ body {
   padding: 0;
   background-color: #f8fafc; 
 }
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -17,12 +18,11 @@ body {
 
 /* ── Header ── */
 .header {
-  background-color: #272f41; 
+  background-color: #1e293b;
   position: sticky;
   top: 0px; 
   z-index: 100;
-  
-  box-shadow: 0 -20px 0 0 #f8fafc;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Vraie ombre pour le header */
 }
 
 .headerContent {
@@ -49,15 +49,17 @@ body {
 
 .logoTitle {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.02em;
 }
+
 .authArea {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .signInBtn, .signOutBtn {
   background-color: #38bdf8; 
   color: #0f172a;
@@ -67,16 +69,19 @@ body {
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
 }
+
 .signOutBtn {
   background-color: #ef4444; 
-  padding: 8px 10px;
+  padding: 8px 12px;
   color: white;
 }
 
 .signInBtn:hover, .signOutBtn:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .avatarBtn {
@@ -92,6 +97,11 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.avatarBtn:hover {
+  transform: scale(1.05);
 }
 
 /* ── Main Feed Area ── */
@@ -106,15 +116,16 @@ body {
 }
 
 .feedTitle {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .feedSubtitle {
   color: #64748b;
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .newsFeed {
@@ -130,11 +141,12 @@ body {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
 .cardHeader {
@@ -143,24 +155,39 @@ body {
 
 .sourceTag {
   font-size: 12px;
-  font-weight: 600;
-  color: #38bdf8;
+  font-weight: 700;
+  color: #0284c7;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background-color: #e0f2fe;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .articleTitle {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   margin: 0 0 12px 0;
   line-height: 1.3;
 }
 
+/* Reset du style des liens dans les titres */
+.articleTitle a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+.articleTitle a:hover {
+  color: #38bdf8;
+}
+
 .articleDesc {
   font-size: 15px;
-  font-weight: 200;
+  font-weight: 400;
+  color: #334155;
   line-height: 1.6;
-  margin: 0 0 20px 0;
+  margin: 0 0 24px 0;
 }
 
 /* ── Action Bar (Votes & Buttons) ── */
@@ -190,21 +217,22 @@ body {
 }
 
 .actionBtn:hover {
-  background: #e2e8f0;
+  background: #f1f5f9;
   color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .activeCommentBtn {
   background: #e2e8f0;
-  border: 1px solid #000000;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
 .activeVoteBtn {
   background: #e2e8f0;
   color: #0f172a;
-  border: 1px solid #000000;
+  border-color: #94a3b8;
 }
-
 
 .tldrBtn {
   background: #eff6ff;
@@ -218,15 +246,19 @@ body {
   transition: all 0.2s;
 }
 
-.tldrBtn:hover {
+.tldrBtn:hover:not(:disabled) {
   background: #dbeafe;
 }
 
 .activeTldr {
   background: #dbeafe;
-  border: 1px solid #1d4ed8;
+  border: 1px solid #3b82f6;
 }
 
+.tldrBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* ── Expandable Sections (TLDR & Comments) ── */
 .tldrBox {
@@ -238,24 +270,39 @@ body {
   border-radius: 8px;
   font-size: 14px;
   line-height: 1.6;
+  animation: fadeIn 0.3s ease;
 }
 
 .commentsSection {
   margin-top: 16px;
   background: #f8fafc;
+  border: 1px solid #f1f5f9;
   border-radius: 8px;
-  padding: 16px;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .commentList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .comment {
   font-size: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.comment:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .commentAuthor {
@@ -265,21 +312,23 @@ body {
 
 .commentText {
   color: #334155;
-  margin: 5px 0px 5px 10px;
+  margin: 6px 0px 0px 0px;
+  line-height: 1.5;
 }
 
 .noComments {
-  font-size: 13px;
+  font-size: 14px;
   color: #64748b;
   font-style: italic;
   margin: 0;
+  text-align: center;
+  padding: 10px 0;
 }
 
 .commentTimestamp {
   font-size: 12px;
   color: #94a3b8;
-  margin-left: 8px;
-  text-align: right;
+  margin-left: 6px;
 }
 
 /* ── Comment Form ── */
@@ -290,35 +339,139 @@ body {
 
 .commentInput {
   flex: 1;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 14px;
   outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
 }
 
 .commentInput:focus {
   border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }
 
 .commentSubmitBtn {
   background: #1e293b;
   color: white;
   border: none;
-  padding: 0 16px;
+  padding: 0 20px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.commentSubmitBtn:hover {
+  background: #0f172a;
 }
 
 .loginPrompt {
-  font-size: 13px;
+  font-size: 14px;
   text-align: center;
   color: #64748b;
+  padding: 16px;
+  background: #f1f5f9;
+  border-radius: 6px;
 }
 
 .loginPrompt a {
-  color: #38bdf8;
+  color: #0284c7;
   font-weight: 600;
   text-decoration: none;
+}
+
+.loginPrompt a:hover {
+  text-decoration: underline;
+}
+
+/* ── Load More Section ── */
+.loadMoreContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  padding-bottom: 40px;
+}
+
+.loadMoreBtn {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 12px 32px;
+  border-radius: 9999px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.loadMoreBtn:hover:not(:disabled) {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.loadMoreBtn:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Sort Controls ── */
+.feedHeaderWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap; /* Utile pour le mobile */
+  gap: 16px;
+}
+
+.sortControls {
+  display: flex;
+  gap: 12px;
+}
+
+.sortSelect {
+  appearance: none;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 8px 32px 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+  /* SVG arrow */
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 10px auto;
+}
+
+.sortSelect:hover {
+  border-color: #94a3b8;
+}
+
+.sortSelect:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+@media (max-width: 600px) {
+  .feedHeaderWrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
