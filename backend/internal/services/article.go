@@ -48,17 +48,21 @@ type ArticleResponse struct {
 	UserVote       int              `json:"userVote"`
 }
 
-// GetAllArticles retrieves all articles.
-func (s *ArticleService) GetAllArticles(ctx context.Context) ([]ArticleResponse, error) {
+// GetPaginated retrieves a paginated list of articles.
+func (s *ArticleService) GetPaginated(
+	ctx context.Context,
+	page int,
+	limit int,
+	sortBy string,
+	order string) ([]ArticleResponse, error) {
 	//we need to inject logged-in user vote status into the articles before returning them,
 	//so we need to get all the articles first, then get the votes for each article for the logged-in user and inject them into the articles
 
-	articles, err := s.articleRepo.GetAll(ctx)
+	articles, err := s.articleRepo.GetPaginated(ctx, page, limit, sortBy, order)
 	if err != nil {
 		return nil, fmt.Errorf("%w : failed to retrieve articles", apperrors.ErrInternal)
 	}
 	userID, ok := ctx.Value("user_id").(bson.ObjectID)
-	// i tried bothe ctx.Value("user_id") and ctx.Value("user_id")
 
 	var userVotes map[bson.ObjectID]int // Map to easily look up votes by Article ID
 

@@ -41,6 +41,71 @@ func (r *MongoArticleRepository) GetAll(ctx context.Context) ([]models.Article, 
 	return articles, nil
 }
 
+// GetPaginated retrieves a paginated list of articles from the database.
+func (r *MongoArticleRepository) GetPaginated(ctx context.Context, page int, limit int, sortBy string, order string) ([]models.Article, error) {
+	skip := int64((page - 1) * limit)
+	limit64 := int64(limit)
+
+	// determine sort direction
+	sortDir := -1
+    if order == "asc" {
+        sortDir = 1
+    }
+
+	pipeline := mongo.Pipeline{}
+
+	if sortBy == "hotness" {
+		// HOTNESS ALGORITHM
+		// Formula : (Upvotes - Downvotes) / (Age in hours + 1)
+
+		// numerator : up_votes - down_votes
+		numerator := bson.M{"$subtract": bson.A{"$up_votes", "$down_votes"}}
+
+		// compute the age : $$NOW (current date) - published_at = result in milliseconds
+		ageInMillis := bson.M{"$subtract": bson.A{"$$NOW", "$published_at"}}
+
+		// convert milliseconds to hours (1000 * 60 * 60 = 3600000)
+		ageInHours := bson.M{"$divide": bson.A{ageInMillis, 3600000}}
+
+		// denominator : Age in hours + 1 (to avoid division by zero)
+		denominator := bson.M{"$add": bson.A{ageInHours, 1}}
+
+		// final score
+		hotnessScore := bson.M{"$divide": bson.A{numerator, denominator}}
+
+		// inject the hotness score into the pipeline
+		pipeline = append(pipeline, bson.D{{Key: "$addFields", Value: bson.M{"hotness_score": hotnessScore}}})
+
+		// sort by hotness score
+		pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{{Key: "hotness_score", Value: sortDir}, {Key: "_id", Value: 1}}}})
+
+	} else {
+		// sort by date
+		pipeline = append(pipeline, bson.D{{Key: "$sort", Value: bson.D{{Key: "published_at", Value: sortDir}, {Key: "_id", Value: 1}}}})
+	}
+
+	// pagination
+	pipeline = append(pipeline, bson.D{{Key: "$skip", Value: skip}})
+	pipeline = append(pipeline, bson.D{{Key: "$limit", Value: limit64}})
+	
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("%w : failed to aggregate articles: %w", apperrors.ErrInternal, err)
+	}
+	defer cursor.Close(ctx)
+
+	var articles []models.Article
+	if err = cursor.All(ctx, &articles); err != nil {
+		return nil, fmt.Errorf("%w : failed to decode articles: %w", apperrors.ErrInternal, err)
+	}
+
+	if articles == nil {
+		articles = []models.Article{}
+	}
+
+	return articles, nil
+}
+
 // GetByID retrieves an article by its ID.
 func (r *MongoArticleRepository) GetByID(ctx context.Context, id bson.ObjectID) (*models.Article, error) {
 	var article models.Article

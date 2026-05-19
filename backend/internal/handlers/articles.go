@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
@@ -23,8 +24,30 @@ func NewArticlesHandler(service *services.ArticleService) *ArticlesHandler {
 // HandleGetArticles returns all articles.
 func (h *ArticlesHandler) HandleGetArticles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	articles, err := h.service.GetAllArticles(ctx)
+	
+	// default values for pagination
+	page := 1
+	limit := 3
+	
+	// read URL query parameters (?page=1&limit=10)
+	if p, err := strconv.Atoi(r.URL.Query().Get("page")); err == nil && p > 0 {
+		page = p
+	}
+	if l, err := strconv.Atoi(r.URL.Query().Get("limit")); err == nil && l > 0 {
+		limit = l
+	}
+	
+	// read URL query parameters for sorting
+	sortBy := r.URL.Query().Get("sortBy")
+    if sortBy == "" {
+        sortBy = "date"
+    }
+    order := r.URL.Query().Get("order")
+    if order == "" {
+        order = "desc"
+    }
 
+	articles, err := h.service.GetPaginated(ctx, page, limit, sortBy, order)
 	if err != nil {
 		http.Error(w, err.Error(), apperrors.FilterError(err))
 		return
