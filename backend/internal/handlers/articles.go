@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
 	"github.com/YahyaMudallal/newsWebSite/internal/models"
@@ -218,11 +221,18 @@ func (h *ArticlesHandler) HandleSyncArticles(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ctx := r.Context()
-	err := h.service.SyncDailyArticles(ctx)
-	if err != nil {
-		http.Error(w, err.Error(), apperrors.FilterError(err))
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
+	// run the synchronization in a separate goroutine to avoid blocking the response
+	go func () {
+		ctxWithTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+        defer cancel()
+        
+        err := h.service.SyncDailyArticles(ctxWithTimeout)
+        if err != nil {
+            log.Printf("Erreur lors de la synchronisation asynchrone : %v", err)
+        }
+	}()
+
+	w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte(`{"status":"processing"}`))
 }
