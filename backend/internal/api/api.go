@@ -87,6 +87,12 @@ func (app *Application) Mount() http.Handler {
 	mux.HandleFunc("DELETE /v1/users/{id}", middleware.AuthMiddleware(usersHandler.HandleDeleteUser))
 
 	mux.HandleFunc("POST /v1/sync-articles", articlesHandler.HandleSyncArticles)
+	
+	// Health check endpoint
+	mux.HandleFunc("GET /v1/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
 
 	//first wrapping the router with CORS
 	corsHandler := middleware.EnableCORS(mux)
