@@ -57,7 +57,10 @@ func (c *newsAPIClient) FetchDailyArticles(ctx context.Context) ([]models.Articl
 	// add the query parameters
 	q := req.URL.Query()
 	q.Add("apikey", c.apiKey)
-	q.Add("language", "en")
+	q.Add("language", "en,fr")
+	q.Add("country", "us,fr,gb")
+	q.Add("category", "top,technology,science,sports,health")
+	q.Add("prioritydomain", "top")
 	q.Add("size", "10")
 	//q.Add("image", "1") 	// uncomment to force only article with images
 	req.URL.RawQuery = q.Encode()
