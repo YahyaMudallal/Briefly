@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/YahyaMudallal/newsWebSite/internal/apperrors"
@@ -206,4 +207,22 @@ func (h *ArticlesHandler) HandleToggleDownvote(w http.ResponseWriter, r *http.Re
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{"downvotes": nbDownvotes})
+}
+
+
+// HandleSyncArticles synchronizes articles with the external news API.
+func (h *ArticlesHandler) HandleSyncArticles(w http.ResponseWriter, r *http.Request) {
+	// check that the cron token is present and valid
+	if r.Header.Get("X-Cron-Token") != os.Getenv("CRON_TOKEN") {
+		http.Error(w, "Invalid cron token", http.StatusUnauthorized)
+		return
+	}
+
+	ctx := r.Context()
+	err := h.service.SyncDailyArticles(ctx)
+	if err != nil {
+		http.Error(w, err.Error(), apperrors.FilterError(err))
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
