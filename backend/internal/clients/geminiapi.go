@@ -33,7 +33,7 @@ func NewGeminiAPIClient(ctx context.Context, apiKey string) (GeminiClient , erro
 func (c *GeminiAPIClient) GenerateTLDR(ctx context.Context, article *models.Article) (string, error) {
 
 	// use the 1.5 flash model for speed and lower cost
-	modelID := "gemini-flash-latest"
+	modelID := "gemini-2.5-flash"
 
 	// prompt engineering to generate a concise summary of the article
 	prompt := fmt.Sprintf(`
