@@ -13,7 +13,6 @@ export default function ProfilePage() {
           <div>
             <p>Name: {user.firstName} {user.lastName}</p>
             <p>Email: {user.email}</p>
-            <p>Bookmarked Articles : </p>
           </div>
         )}
       </div>
