@@ -19,8 +19,14 @@ type CommentService struct {
 }
 
 // NewCommentService creates a new CommentService.
-func NewCommentService(commentRepo repositories.CommentRepository, userRepo repositories.UserRepository, articleRepo repositories.ArticleRepository) *CommentService {
-	return &CommentService{commentRepo: commentRepo, userRepo: userRepo, articleRepo: articleRepo}
+func NewCommentService(
+	commentRepo repositories.CommentRepository,
+	userRepo repositories.UserRepository,
+	articleRepo repositories.ArticleRepository) *CommentService {
+	return &CommentService{
+		commentRepo: commentRepo,
+		userRepo: userRepo,
+		articleRepo: articleRepo}
 }
 
 // GetAllComments retrieves all comments.

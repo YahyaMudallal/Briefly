@@ -22,7 +22,7 @@ body {
   position: sticky;
   top: 0px; 
   z-index: 100;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Vraie ombre pour le header */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .headerContent {
@@ -171,7 +171,6 @@ body {
   line-height: 1.3;
 }
 
-/* Reset du style des liens dans les titres */
 .articleTitle a {
   text-decoration: none;
   color: inherit;

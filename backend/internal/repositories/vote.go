@@ -22,7 +22,10 @@ func NewMongoVoteRepository(collection *mongo.Collection) *MongoVoteRepository {
 }
 
 // GetByArticleIDAndUserID retrieves a vote by article ID and user ID.
-func (r *MongoVoteRepository) GetByArticleIDAndUserID(ctx context.Context, articleID bson.ObjectID, userID bson.ObjectID) (*models.Vote, bool, error) {
+func (r *MongoVoteRepository) GetByArticleIDAndUserID(
+	ctx context.Context,
+	articleID bson.ObjectID,
+	userID bson.ObjectID) (*models.Vote, bool, error) {
 	var vote models.Vote
 	err := r.collection.FindOne(ctx, bson.M{"article_id": articleID, "user_id": userID}).Decode(&vote)
 	if err != nil {
@@ -36,7 +39,9 @@ func (r *MongoVoteRepository) GetByArticleIDAndUserID(ctx context.Context, artic
 }
 
 // GetAllByArticleID retrieves all votes for a specific article.
-func (r *MongoVoteRepository) GetAllByArticleID(ctx context.Context, articleID bson.ObjectID) ([]models.Vote, []models.Vote, error) {
+func (r *MongoVoteRepository) GetAllByArticleID(
+	ctx context.Context,
+	articleID bson.ObjectID) ([]models.Vote, []models.Vote, error) {
 	cursorUp, err := r.collection.Find(ctx, bson.M{"article_id": articleID, "type": 1})
 	cursorDown, err := r.collection.Find(ctx, bson.M{"article_id": articleID, "type": -1})
 	if err != nil {
@@ -82,7 +87,10 @@ func (r *MongoVoteRepository) GetAllByUserID(ctx context.Context, userID bson.Ob
 }
 
 // ToggleUpvote toggles an upvote for a specific article and user.
-func (r *MongoVoteRepository) ToggleUpvote(ctx context.Context, articleID bson.ObjectID, userID bson.ObjectID) (int, error) {
+func (r *MongoVoteRepository) ToggleUpvote(
+	ctx context.Context,
+	articleID bson.ObjectID,
+	userID bson.ObjectID) (int, error) {
 	//return value: (prev_status, error_status); for ex: (1, nil) if prev status was upvote, (-1, nil) if it was downvote, and (0, nil) if it was novote
 	// 0, err if there was an error
 
@@ -133,7 +141,10 @@ func (r *MongoVoteRepository) ToggleUpvote(ctx context.Context, articleID bson.O
 }
 
 // ToggleDownvote toggles a downvote for a specific article and user.
-func (r *MongoVoteRepository) ToggleDownvote(ctx context.Context, articleID bson.ObjectID, userID bson.ObjectID) (int, error) {
+func (r *MongoVoteRepository) ToggleDownvote(
+	ctx context.Context, 
+	articleID bson.ObjectID, 
+	userID bson.ObjectID) (int, error) {
 	//return value: (prev_status, error_status); for ex: (1, nil) if prev status was upvote, (-1, nil) if it was downvote, and (0, nil) if it was novote
 	// 0, err if there was an errors
 

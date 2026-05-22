@@ -20,7 +20,7 @@ type ArticleService struct {
 	commentRepo repositories.CommentRepository
 	newsClient clients.NewsClient
 	geminiClient clients.GeminiClient
-  votesRepo   repositories.VoteRepository
+  	votesRepo   repositories.VoteRepository
 }
 
 // NewArticleService creates a new ArticleService.
@@ -44,7 +44,7 @@ func NewArticleService(
 
 // Create a new Response Struct that combines them
 type ArticleResponse struct {
-	models.Article `bson:",inline"` // Embeds all the standard article fields
+	models.Article 					`bson:",inline"` // Embeds all the standard article fields
 	UserVote       int              `json:"userVote"`
 }
 
