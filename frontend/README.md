@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# Briefly: Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This folder contains the frontend part of the project, which is built with TypeScript using React and Vite. The client uses React Router to assign the route "/" for the HomePage, "/auth" for the authentication page, and "/profile" for the profile page.
 
-Currently, two official plugins are available:
+## Running the frontend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+To run the client, first install the node dependencies with the command:
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then, start the frontend for the development workflow with:
+```bash
+npm run dev
+```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Design of the frontend
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The folder structure of the React project is the following:
+```plain text
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   ├── _redirects
+│   ├── favicon.svg
+│   └── icons.svg
+├── src
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── logoBrightFull.png
+│   │   ├── logoBrightHalf.png
+│   │   ├── logoDarkFull.png
+│   │   └── logoDarkHalf.png
+│   ├── components
+│   │   ├── AuthPage.tsx
+│   │   ├── FormatTimeAgo.tsx
+│   │   ├── Header.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── NewsCard.tsx
+│   │   ├── ProfilePage.tsx
+│   │   └── ProtectedRoute.tsx
+│   ├── config.ts
+│   ├── context
+│   │   └── UserContext.tsx
+│   ├── css
+│   │   ├── AuthPage.module.css
+│   │   └── HomePage.module.css
+│   ├── main.tsx
+│   └── types
+│       └── types.tsx
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
 ```
