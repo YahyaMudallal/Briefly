@@ -5,6 +5,9 @@ import { Link, useNavigate } from "react-router";
 import { useUser } from "../context/UserContext";
 import FormatTimeAgo from "./FormatTimeAgo";
 import { API_BASE_URL } from "../config";
+import commentIcon from '../assets/comment.png';
+import tldrIcon from '../assets/ai.png';
+
 
 // --- INDIVIDUAL NEWS CARD COMPONENT ---
 export default function NewsCard({ article }: { article: Article}) {
@@ -253,7 +256,7 @@ export default function NewsCard({ article }: { article: Article}) {
             onClick={handleTldrClick}
             disabled={isGeneratingTldr}
           >
-            {isGeneratingTldr ? "✨ Génération..." : "✨ AI TL;DR"}
+            <img className={styles.icon} src={tldrIcon} alt="AI TL;DR" /> <span className={styles.hideTextMobile}>{isGeneratingTldr ? " Generating..." : " AI TL;DR"}</span>
           </button>
           <button 
             className={`${styles.actionBtn} ${showComments ? styles.activeCommentBtn : ''}`}
@@ -261,7 +264,8 @@ export default function NewsCard({ article }: { article: Article}) {
               setShowComments(!showComments); 
               !showComments && fetchComments();}}
           >
-            💬 {comments.length===0 ? article.nbComments : comments.length} Comments
+            <img className={styles.icon} src={commentIcon} alt="Comments" />
+            {comments.length===0 ? article.nbComments : comments.length}<span className={styles.hideTextMobile}> Comments</span>
           </button>
         </div>
       </div>

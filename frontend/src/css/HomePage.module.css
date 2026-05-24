@@ -141,13 +141,14 @@ body {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  /*transition: transform 0.2s ease, box-shadow 0.2s ease;*/
 }
 
+/*
 .card:hover {
   transform: translateY(-3px);
   box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.04);
-}
+}*/
 
 .cardHeader {
   margin-bottom: 12px;
@@ -190,6 +191,8 @@ body {
 }
 
 /* ── Action Bar (Votes & Buttons) ── */
+
+/* ── Action Bar (Votes & Buttons) ── */
 .actionBar {
   display: flex;
   justify-content: space-between;
@@ -216,22 +219,21 @@ body {
 }
 
 .actionBtn:hover {
-  background: #f1f5f9;
+  background: #e2e8f0;
   color: #0f172a;
-  border-color: #cbd5e1;
 }
 
 .activeCommentBtn {
   background: #e2e8f0;
-  color: #0f172a;
-  border-color: #94a3b8;
+  border: 1px solid #000000;
 }
 
 .activeVoteBtn {
   background: #e2e8f0;
   color: #0f172a;
-  border-color: #94a3b8;
+  border: 1px solid #000000;
 }
+
 
 .tldrBtn {
   background: #eff6ff;
@@ -245,19 +247,22 @@ body {
   transition: all 0.2s;
 }
 
-.tldrBtn:hover:not(:disabled) {
+.tldrBtn:hover {
   background: #dbeafe;
 }
 
 .activeTldr {
   background: #dbeafe;
-  border: 1px solid #3b82f6;
+  border: 1px solid #1d4ed8;
 }
 
-.tldrBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 5px;
+  margin-bottom: -2px;
 }
+
 
 /* ── Expandable Sections (TLDR & Comments) ── */
 .tldrBox {
@@ -473,4 +478,22 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+@media(max-width : 450px) {
+  .hideTextMobile {
+    display: none;
+  }
+
+  /* Stack the two select dropdowns vertically */
+  .sortControls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Make the dropdowns span the entire width of the screen */
+  .sortSelect {
+    width: 100%;
+  }
+  
 }
