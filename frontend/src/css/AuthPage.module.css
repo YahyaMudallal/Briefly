@@ -83,10 +83,10 @@
 
 /* Small subtitle right underneath */
 .logoSubTitle {
-  font-size: 12px; 
-  font-weight: 600;
-  color: #38bdf8;
-  margin-top: -4px; 
+  font-size: 8px; 
+  font-weight: 700;
+  color: #64D9D3;
+  margin-top: -6px; 
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
