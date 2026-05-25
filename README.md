@@ -21,4 +21,4 @@ Yahya MUDALLAL
 
 ## Description of the Project
 
-**Briefly** is a news aggregator that allows users to scroll through a feed of news articles. By creating an account, users can read AI-generated summaries, cast upvotes or downvotes, and participate in discussions through nested comments. New articles are automatically fetched and added every day at 2:00 AM via a scheduled cron job.
+**Briefly** is a news aggregator that allows users to scroll through a feed of news articles. By creating an account, users can read AI-generated summaries, cast upvotes or downvotes, and participate in discussions through comments. New articles are automatically fetched and added every day at 2:00 AM via a scheduled cron job.
